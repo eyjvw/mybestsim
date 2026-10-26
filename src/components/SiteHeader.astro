@@ -33,6 +33,7 @@ const { current } = Astro.props;
         href={n.href}
         aria-current={n.href === current ? "page" : undefined}
         data-keep-filters={n.filters ? "" : undefined}
+        data-keep-sandbox={n.sandbox ? "" : undefined}
       >
         {n.label}
       </a>

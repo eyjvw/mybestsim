@@ -20,6 +20,7 @@ bun run checks:live               # le site déployé, après une mise en produc
 | `verify-brand.mjs` | couleurs MyBestSim et polices auto-hébergées dans le CSS construit, aucune ressource externe | CI |
 | `verify-diff.mjs` | le rapport d'import contre un diff indépendant par SKU | CI |
 | `verify-ingest.mjs` | publication à travers le vrai serveur ; jeton faux, fichier invalide et garde-fou ne changent rien | CI |
+| `verify-sandbox.mjs` | bac à sable : publication sans jeton servie sous `/sandbox/data`, production identique octet pour octet, 401 sans jeton en production, 429 au-delà de la limite horaire par client, remise à zéro vers le jeu initial | CI |
 | `verify-inbox-webhook.mjs` | import par dépôt dans `inbox/` et réception du webhook | CI |
 | `verify-hardening.mjs` | jeton trop court, limites d'essais et d'aperçus, renvoi inchangé, CLI | CI |
 | `verify-smoke-local.mjs` | `scripts/smoke.mjs` contre le vrai serveur | CI |

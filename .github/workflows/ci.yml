@@ -218,3 +218,5 @@ jobs:
           curl -fsS "$SITE_URL/stats.json" | jq -e '.total > 0 and (.quality.rejected | length) == 0'
           curl -fsS "$SITE_URL/api/health" | jq -e '.ok == true and (.importId | length) > 0'
           curl -fsS "$SITE_URL/data/version.json" | jq -e '(.files | length) > 0'
+          curl -fsS "$SITE_URL/api/sandbox/health" | jq -e '.ok == true and (.importId | length) > 0'
+          curl -fsS "$SITE_URL/sandbox/data/version.json" | jq -e '(.files | length) > 0'

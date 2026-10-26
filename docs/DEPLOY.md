@@ -24,6 +24,7 @@ fournisseur ── SFTP/rsync ──▶ inbox/ du volume ───────�
 /data/inbox/done/<id>/            fichiers importés, avec leur rapport
 /data/inbox/rejected/<horodatage>/  fichiers refusés ou retenus, avec leur rapport
 /data/imports.jsonl               journal de toutes les tentatives
+/data/sandbox/                    bac à sable public : mêmes dossiers (releases, current, journal)
 ```
 
 Une release est écrite en entier dans un dossier caché, renommée, puis `current` bascule
@@ -98,6 +99,10 @@ cd /data && ln -sfn releases/<id> .current-rollback && mv -T .current-rollback c
 | `SEED_DIR` | CSV publiés au premier démarrage | `/app/seed` |
 | `MAX_UPLOAD_MB` | taille maximale d'un envoi | `5` |
 | `INBOX_INTERVAL_MS` | fréquence de lecture de `inbox/` | `10000` |
+| `SANDBOX` | `off` désactive le bac à sable public | activé |
+| `SANDBOX_PUBLISHES_PER_HOUR` | publications anonymes par heure et par client | `20` |
+| `SANDBOX_RESET_HOUR`, `SANDBOX_TIMEZONE` | heure locale de la remise à zéro quotidienne | `3`, `Europe/Paris` |
+| `SANDBOX_RESET_EVERY_MS` | remise à zéro à intervalle fixe, pour les tests uniquement | aucun |
 
 Le jeton se génère avec `openssl rand -hex 32` et se range dans `~/infra/.env.mybestsim`.
 Ce fichier n'est jamais commité ni affiché.

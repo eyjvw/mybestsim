@@ -13,6 +13,11 @@ export interface AppConfig {
   notify?: (outcome: ImportOutcome) => Promise<unknown>;
   /** Failed tokens and anonymous previews allowed per client and minute. */
   limits?: { authFailures: number; previews: number };
+  /**
+   * Public demo: anyone may publish there without a token, under /api/sandbox, with its own
+   * store (served under /sandbox/data), no webhook, a per-client hourly limit and a nightly reset.
+   */
+  sandbox?: { store: DataStore; publishesPerHour: number };
 }
 
 const json = (body: unknown, status = 200) =>
@@ -62,6 +67,8 @@ const STATUS: Record<ImportOutcome["status"], number> = {
 export function createApp(store: DataStore, config: AppConfig) {
   const authFailures = rateLimiter(config.limits?.authFailures ?? 10, 60_000);
   const previews = rateLimiter(config.limits?.previews ?? 30, 60_000);
+  const sandbox = config.sandbox;
+  const sandboxPublishes = rateLimiter(sandbox?.publishesPerHour ?? 0, 3_600_000);
 
   return async function fetch(req: Request, socketAddress = "local"): Promise<Response> {
     const url = new URL(req.url);
@@ -99,36 +106,47 @@ export function createApp(store: DataStore, config: AppConfig) {
           return error(401, "Jeton de publication manquant ou invalide.");
         }
       }
-      const length = Number(req.headers.get("content-length") ?? 0);
-      if (length > config.maxBytes)
-        return error(413, `Fichier trop gros (maximum ${config.maxBytes / 1024 / 1024} Mo).`);
-      let uploads: SupplierFile[];
-      try {
-        uploads = await readUploads(req, url);
-      } catch (e) {
-        return error(415, e instanceof TypeError ? e.message : "Corps de requête illisible.");
-      }
-      if (uploads.reduce((n, f) => n + f.text.length, 0) > config.maxBytes) {
-        return error(413, `Fichier trop gros (maximum ${config.maxBytes / 1024 / 1024} Mo).`);
-      }
-      if (uploads.some((f) => !f.file.toLowerCase().endsWith(".csv"))) {
-        return error(415, "Seuls les fichiers .csv sont acceptés.");
-      }
-      const outcome = await store.import(uploads, {
-        source: "api",
-        dryRun,
-        force: url.searchParams.get("force") === "1",
-      });
+      const outcome = await importFiles(req, url, store, dryRun);
+      if (outcome instanceof Response) return outcome;
       if (!dryRun) void config.notify?.(outcome);
       return json(outcome, STATUS[outcome.status]);
     }
 
+    if (path.startsWith("/api/sandbox/")) {
+      if (!sandbox) return error(404, "Pas de bac à sable sur ce serveur.");
+      if (path === "/api/sandbox/health")
+        return json({ ok: true, importId: sandbox.store.currentId() });
+      if (path === "/api/sandbox/imports" && req.method === "GET")
+        return json({ imports: sandbox.store.history(20) });
+      if (path === "/api/sandbox/imports" && req.method === "POST") {
+        const dryRun = url.searchParams.get("dryRun") === "1";
+        const limiter = dryRun ? previews : sandboxPublishes;
+        if (limiter.blocked(client))
+          return error(
+            429,
+            dryRun
+              ? "Trop d'aperçus, réessayez dans une minute."
+              : `Limite du bac à sable atteinte (${sandbox.publishesPerHour} publications par heure), réessayez plus tard.`,
+          );
+        limiter.hit(client);
+        // No webhook: anonymous demo publishes must not page the team.
+        const outcome = await importFiles(req, url, sandbox.store, dryRun);
+        if (outcome instanceof Response) return outcome;
+        return json(outcome, STATUS[outcome.status]);
+      }
+    }
+
     if (path.startsWith("/api/")) return error(404, "Route inconnue.");
 
-    // Static mode (dev, e2e): /data/* from the current release, the rest from the build.
+    // Static mode (dev, e2e): /data/* and /sandbox/data/* from the current releases, the rest
+    // from the build.
     if (req.method === "GET" || req.method === "HEAD") {
-      if (path.startsWith("/data/")) {
-        const file = inside(store.currentLink, path.slice("/data".length));
+      for (const [prefix, link] of [
+        ["/data/", store.currentLink],
+        ["/sandbox/data/", sandbox?.store.currentLink],
+      ] as const) {
+        if (!link || !path.startsWith(prefix)) continue;
+        const file = inside(link, path.slice(prefix.length - 1));
         return file
           ? new Response(Bun.file(file), { headers: { "Cache-Control": "no-cache" } })
           : error(404, "Introuvable.");
@@ -140,4 +158,33 @@ export function createApp(store: DataStore, config: AppConfig) {
     }
     return error(404, "Introuvable.");
   };
+
+  /** Reads, checks and imports the uploaded files: an outcome, or an error response. */
+  async function importFiles(
+    req: Request,
+    url: URL,
+    target: DataStore,
+    dryRun: boolean,
+  ): Promise<ImportOutcome | Response> {
+    const length = Number(req.headers.get("content-length") ?? 0);
+    if (length > config.maxBytes)
+      return error(413, `Fichier trop gros (maximum ${config.maxBytes / 1024 / 1024} Mo).`);
+    let uploads: SupplierFile[];
+    try {
+      uploads = await readUploads(req, url);
+    } catch (e) {
+      return error(415, e instanceof TypeError ? e.message : "Corps de requête illisible.");
+    }
+    if (uploads.reduce((n, f) => n + f.text.length, 0) > config.maxBytes) {
+      return error(413, `Fichier trop gros (maximum ${config.maxBytes / 1024 / 1024} Mo).`);
+    }
+    if (uploads.some((f) => !f.file.toLowerCase().endsWith(".csv"))) {
+      return error(415, "Seuls les fichiers .csv sont acceptés.");
+    }
+    return target.import(uploads, {
+      source: "api",
+      dryRun,
+      force: url.searchParams.get("force") === "1",
+    });
+  }
 }

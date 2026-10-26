@@ -1,10 +1,17 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { E2E_TOKEN } from "../playwright.config";
 import { hydrated } from "./helpers";
 
 // Runs against the ingest service: the build is never touched, only the data volume.
 test.describe.configure({ mode: "serial" });
+
+/** /import publishes to the sandbox by default: these tests target the real catalogue. */
+async function chooseCatalog(page: Page) {
+  await page.locator("[data-publish-target]").getByText("Catalogue en ligne").click();
+  await expect(page.locator('[data-publish-target="live"]')).toBeVisible();
+  await expect(page.locator("[data-import-input]")).toBeEnabled();
+}
 
 test.describe("live data, no rebuild", () => {
   let buildSha = "";
@@ -28,6 +35,7 @@ test.describe("live data, no rebuild", () => {
   test("a wrong token is refused and nothing changes", async ({ page, request }) => {
     const before = (await (await request.get("/data/version.json")).json()).importId;
     await page.goto("/import");
+    await chooseCatalog(page);
     await page.getByRole("button", { name: "Exemple sans erreur" }).click();
     await page.locator('input[name="token"]').fill("wrong");
     await page.getByRole("button", { name: "Publier" }).click();
@@ -57,6 +65,7 @@ test.describe("live data, no rebuild", () => {
     const removed = [...today].filter((sku) => !rows.includes(sku as string)).length;
 
     await page.goto("/import");
+    await chooseCatalog(page);
     await page.getByRole("button", { name: "Exemple sans erreur" }).click();
     await page.locator('input[name="token"]').fill(E2E_TOKEN);
     await page.getByRole("button", { name: "Publier" }).click();
@@ -112,7 +121,7 @@ test.describe("live data, no rebuild", () => {
     ].join("\n");
     const before = (await (await request.get("/data/version.json")).json()).importId;
     await page.goto("/import");
-    await expect(page.locator("[data-import-input]")).toBeEnabled();
+    await chooseCatalog(page);
     await page
       .locator("[data-import-input]")
       .setInputFiles({ name: "roamic.csv", mimeType: "text/csv", buffer: Buffer.from(doubled) });
@@ -128,5 +137,54 @@ test.describe("live data, no rebuild", () => {
     });
     expect(res.status()).toBe(409);
     expect((await (await request.get("/data/version.json")).json()).importId).toBe(before);
+  });
+
+  test("anyone can publish to the sandbox without a token, production stays as it was", async ({
+    page,
+    request,
+  }) => {
+    const prodBefore = (await (await request.get("/data/version.json")).json()).importId;
+    const sandboxBefore = (await (await request.get("/sandbox/data/version.json")).json()).importId;
+    await page.goto("/import");
+    await expect(page.locator('[data-publish-target="sandbox"]')).toBeVisible();
+    await expect(page.locator('input[name="token"]')).toHaveCount(0);
+    await page.getByRole("button", { name: "Exemple sans erreur" }).click();
+    await page.getByRole("button", { name: "Publier dans le bac à sable" }).click();
+    const result = page.locator('[data-publish-result="published"]');
+    await expect(result).toContainText("Publié");
+    const importId = (await result.locator("code").textContent()) ?? "";
+    expect(importId).not.toBe(sandboxBefore);
+    expect((await (await request.get("/sandbox/data/version.json")).json()).importId).toBe(
+      importId,
+    );
+    expect((await (await request.get("/data/version.json")).json()).importId).toBe(prodBefore);
+
+    await result.getByRole("link", { name: /bac à sable/ }).click();
+    await expect(page).toHaveURL(/\?bac=1#changes$/);
+    await hydrated(page);
+    await expect(page.locator("[data-sandbox]")).toContainText("Bac à sable");
+    await expect(page.locator("[data-sandbox-banner]")).toContainText(
+      "Le vrai catalogue n'est pas touché",
+    );
+    await expect(page.locator(`[data-changes="${importId}"]`)).toBeVisible();
+    const axe = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    expect(axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")).toEqual(
+      [],
+    );
+    const nav = page.getByRole("navigation", { name: "Pages" });
+    await expect(nav.getByRole("link", { name: "Analyse" })).toHaveAttribute("href", /bac=1/);
+    await expect(nav.getByRole("link", { name: "Qualité" })).toHaveAttribute("href", /bac=1/);
+    await expect(nav.getByRole("link", { name: "Article" })).not.toHaveAttribute("href", /bac=1/);
+
+    await page
+      .locator("[data-sandbox-banner]")
+      .getByRole("link", { name: "Revenir aux données en ligne" })
+      .click();
+    await hydrated(page);
+    await expect(page.locator('[data-source="live"]')).toContainText("Données en direct");
+    await expect(page.locator("[data-sandbox]")).toHaveCount(0);
+    await expect(page.locator(`[data-changes="${importId}"]`)).toHaveCount(0);
   });
 });

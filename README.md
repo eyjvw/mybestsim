@@ -52,11 +52,12 @@ par un script indépendant, voir [Qualité et tests](#qualité-et-tests).
 | `/analyse` | point 7 : prix médian au Go, prix par palier, histogramme, profil des offres, couverture, meilleures offres, économies |
 | `/offres` | toutes les offres (tri, recherche sans accents, export CSV) et simulateur de voyage |
 | `/qualite` | contrôle des imports, contrôles métier, choix assumés |
-| `/import` | aperçu d'un fichier fournisseur, puis publication |
+| `/import` | aperçu d'un fichier fournisseur, puis publication dans le bac à sable (sans jeton) ou dans le catalogue (avec jeton) |
 | `/blog/internet-croisiere-esim/` | partie 2 : l'article SEO « Internet en croisière : quelle eSIM choisir ? » |
 
 Les filtres (fournisseur, zone, destination, data, réseau, durée, recharge) vivent dans l'URL : un
-lien partagé rouvre la même vue, et la sélection suit le visiteur d'une page à l'autre.
+lien partagé rouvre la même vue, et la sélection suit le visiteur d'une page à l'autre. Avec
+`?bac=1`, chaque page montre les données du bac à sable.
 
 | Analyse | Offres et simulateur |
 | --- | --- |
@@ -124,8 +125,9 @@ Détail du volume, des variables et du déploiement : [docs/DEPLOY.md](docs/DEPL
 
 Quatre chemins, un seul code de validation :
 
-1. **Depuis le site** : sur `/import`, déposer le CSV, vérifier l'aperçu, saisir le jeton, puis
-   « Publier ».
+1. **Depuis le site** : sur `/import`, déposer le CSV, vérifier l'aperçu, puis « Publier ». Par
+   défaut, la publication va dans le **bac à sable**, sans jeton (voir plus bas). Le vrai catalogue
+   demande le jeton de l'équipe.
 2. **Par l'API**, par exemple pour une automatisation n8n, Make ou un cron :
 
    ```sh
@@ -147,6 +149,20 @@ Règles appliquées à chaque import :
   publication après vérification.
 - Le jeton doit faire au moins 24 caractères. Les essais ratés sont limités à 10 par minute et par
   client, les aperçus anonymes à 30.
+
+### Le bac à sable : tester l'automatisation sans jeton
+
+Un recruteur n'a pas le jeton de publication. Pour qu'il puisse quand même tester le parcours
+complet, le service tient un second catalogue, **le bac à sable**, dans le même volume mais à part
+(`/data/sandbox`) :
+
+- `/import` publie dans le bac à sable par défaut, sans jeton ; l'API est `POST /api/sandbox/imports` ;
+- le tableau de bord du bac à sable s'ouvre avec `?bac=1` (lien proposé après la publication), et
+  l'encart « Depuis le dernier import » montre ce que le fichier a changé ;
+- même traitement que la production : validation, garde-fou, release atomique, sans rebuild ;
+- garde-fous propres : 20 publications par heure et par client, aucune notification à l'équipe, et
+  **remise à zéro chaque nuit à 3 h** (heure de Paris) sur le jeu de fichiers initial ;
+- la production n'est jamais touchée : `checks/verify-sandbox.mjs` le vérifie octet pour octet.
 
 ## Choix assumés
 
@@ -211,9 +227,9 @@ cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 165 tests dans 31 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 68 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
-| Oracles | 20 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 15 à chaque PR (`bun run checks`) |
+| Unitaire | `bun test`, 180 tests dans 32 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Navigateur | Playwright, 69 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Oracles | 21 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 16 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy ; processus non-root ; données conservées après redémarrage |
 
 Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
@@ -383,8 +399,6 @@ qu'on regarde vraiment. Chaque chiffre de ce README provient d'un script, pas d'
 
 ## Limites et suite
 
-- **Bac à sable de démonstration** : pour qu'un visiteur puisse publier sans jeton, un jeu
-  `sandbox` remis à zéro chaque nuit est prévu.
 - **Couverture des forfaits régionaux** : c'est une hypothèse, faute de donnée dans les CSV.
 - **Article SEO** : publié ici en démonstration, sans indexation ; sa place est sur mybestsim.com.
 - Le détail des étapes restantes est dans [docs/ROADMAP.md](docs/ROADMAP.md).

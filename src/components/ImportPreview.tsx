@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Audit } from "../lib/audit";
 import { formatEur, formatInt, formatPct, formatTier } from "../lib/format";
 import { type ImportPreview as Preview, previewImport } from "../lib/import-preview";
-import { loadCatalog } from "../lib/runtime";
+import { LIVE_DATA, loadCatalog, SANDBOX_DATA } from "../lib/runtime";
 import { SAMPLE_CHANGES } from "../lib/sample";
 import type { Product } from "../lib/types";
 import { Panel } from "./Section";
@@ -21,6 +21,8 @@ interface PublishResult {
 }
 
 type Upload = { file: string; text: string };
+/** Where a file is published: the public sandbox (no token) or the real catalogue (token). */
+type Target = "sandbox" | "live";
 
 /**
  * Sends the previewed files to the ingest service. The token stays in memory: it is never
@@ -30,13 +32,16 @@ function PublishPanel({
   uploads,
   preview,
   live,
+  target,
   onPublished,
 }: {
   uploads: Upload[];
   preview: Preview;
   live: boolean;
+  target: Target;
   onPublished: () => void;
 }) {
+  const sandbox = target === "sandbox";
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
   const [force, setForce] = useState(false);
@@ -51,10 +56,11 @@ function PublishPanel({
       const form = new FormData();
       for (const u of uploads)
         form.append("file", new File([u.text], u.file, { type: "text/csv" }));
-      const res = await fetch(`/api/imports${force ? "?force=1" : ""}`, {
+      const endpoint = sandbox ? "/api/sandbox/imports" : "/api/imports";
+      const res = await fetch(`${endpoint}${force ? "?force=1" : ""}`, {
         method: "POST",
         body: form,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: sandbox ? {} : { Authorization: `Bearer ${token}` },
       });
       const body = (await res.json().catch(() => ({}))) as Partial<PublishResult> & {
         error?: string;
@@ -91,8 +97,12 @@ function PublishPanel({
 
   return (
     <Panel
-      title="Publier dans le catalogue"
-      note="Le service d'ingestion revalide le fichier, applique le garde-fou, publie une nouvelle release des données et notifie l'équipe. Le site n'est pas reconstruit : le tableau de bord lit les nouvelles données immédiatement."
+      title={sandbox ? "Publier dans le bac à sable" : "Publier dans le catalogue"}
+      note={
+        sandbox
+          ? "Même traitement que le vrai catalogue : le service revalide le fichier, applique le garde-fou et publie une release, sans rebuild. Sans jeton, sans notifier l'équipe, et remis à zéro chaque nuit."
+          : "Le service d'ingestion revalide le fichier, applique le garde-fou, publie une nouvelle release des données et notifie l'équipe. Le site n'est pas reconstruit : le tableau de bord lit les nouvelles données immédiatement."
+      }
     >
       <form
         className="flex flex-col gap-3 sm:flex-row sm:items-end"
@@ -102,25 +112,27 @@ function PublishPanel({
         }}
         data-publish-form
       >
-        <label className="block min-w-0 flex-1">
-          <span className="mb-1 block text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
-            Jeton de publication
-          </span>
-          <input
-            type="password"
-            autoComplete="off"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            className="h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm shadow-card"
-            name="token"
-          />
-        </label>
+        {!sandbox && (
+          <label className="block min-w-0 flex-1">
+            <span className="mb-1 block text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
+              Jeton de publication
+            </span>
+            <input
+              type="password"
+              autoComplete="off"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              className="h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm shadow-card"
+              name="token"
+            />
+          </label>
+        )}
         <button
           type="submit"
-          disabled={busy || invalid || !token || (held && !force)}
+          disabled={busy || invalid || (!sandbox && !token) || (held && !force)}
           className="h-10 rounded-full bg-cta px-5 text-sm font-semibold text-white shadow-card hover:brightness-110 disabled:opacity-50"
         >
-          {busy ? "Publication…" : "Publier"}
+          {busy ? "Publication…" : sandbox ? "Publier dans le bac à sable" : "Publier"}
         </button>
       </form>
       {invalid && (
@@ -151,17 +163,17 @@ function PublishPanel({
         >
           {result.status === "unchanged" ? (
             <p>
-              <strong>Rien à publier</strong> : le fichier est identique au catalogue en ligne,
-              aucune nouvelle release n'a été créée.
+              <strong>Rien à publier</strong> : le fichier est identique au catalogue
+              {sandbox ? " du bac à sable" : " en ligne"}, aucune nouvelle release n'a été créée.
             </p>
           ) : result.status === "published" ? (
             <p>
               <strong>Publié</strong> : release <code>{result.importId}</code>.{" "}
               <a
                 className="font-semibold text-accent underline-offset-2 hover:underline"
-                href="/#changes"
+                href={sandbox ? "/?bac=1#changes" : "/#changes"}
               >
-                Voir le tableau de bord →
+                {sandbox ? "Voir le tableau de bord du bac à sable →" : "Voir le tableau de bord →"}
               </a>
             </p>
           ) : (
@@ -253,21 +265,41 @@ function AuditList({ audit }: { audit: Audit }) {
 export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
   const [catalog, setCatalog] = useState<Product[] | null>(null);
   const [live, setLive] = useState(false);
+  // The sandbox is the default when the server has one: a visitor has no token.
+  const [sandboxReady, setSandboxReady] = useState(false);
+  const [target, setTarget] = useState<Target | null>(null);
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [names, setNames] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
 
+  useEffect(() => {
+    // The sandbox's own version file: a static build ships a placeholder without importId.
+    fetch(`${SANDBOX_DATA}/version.json`, { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((v: { importId?: string } | null) => {
+        const ready = Boolean(v?.importId);
+        setSandboxReady(ready);
+        setTarget(ready ? "sandbox" : "live");
+      })
+      .catch(() => setTarget("live"));
+  }, []);
+
+  // The preview compares the file with the catalogue it would be published to.
   const refresh = useCallback(() => {
-    loadCatalog()
+    if (!target) return;
+    loadCatalog(undefined, target === "sandbox" ? SANDBOX_DATA : LIVE_DATA)
       .then((c) => {
         setCatalog(c.products);
         setLive(c.source === "live");
       })
       .catch(() => setError("Le catalogue actuel n'a pas pu être chargé."));
-  }, []);
+  }, [target]);
   useEffect(() => refresh(), [refresh]);
+  useEffect(() => {
+    if (catalog && uploads.length) setPreview(previewImport(uploads, catalog));
+  }, [catalog, uploads]);
 
   const run = useCallback(
     (files: { file: string; text: string }[]) => {
@@ -308,6 +340,49 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
 
   return (
     <div className="space-y-6">
+      {sandboxReady && target && (
+        <fieldset className="rounded-[18px] border border-line bg-surface px-4 py-3 shadow-card">
+          <legend className="sr-only">Où publier le fichier ?</legend>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold">Où publier le fichier ?</p>
+            <div className="flex flex-wrap gap-2" data-publish-target={target}>
+              {(
+                [
+                  ["sandbox", "Bac à sable", "sans jeton, remis à zéro chaque nuit"],
+                  ["live", "Catalogue en ligne", "jeton de l'équipe"],
+                ] as const
+              ).map(([value, label, hint]) => (
+                <label
+                  key={value}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm ${target === value ? "border-accent bg-accent text-on-accent" : "border-accent/30 bg-surface text-accent hover:border-accent"}`}
+                >
+                  <input
+                    type="radio"
+                    name="target"
+                    value={value}
+                    className="sr-only"
+                    checked={target === value}
+                    onChange={() => setTarget(value)}
+                  />
+                  <span className="font-semibold">{label}</span>
+                  <span className={target === value ? "text-on-accent/85" : "text-ink-3"}>
+                    · {hint}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {target === "sandbox" && (
+            <p className="mt-2 text-xs text-ink-3">
+              Publiez ici sans risque : le tableau de bord du bac à sable (
+              <a className="text-accent underline-offset-2 hover:underline" href="/?bac=1">
+                /?bac=1
+              </a>
+              ) se met à jour sans rebuild, le vrai catalogue n'est jamais touché.
+            </p>
+          )}
+        </fieldset>
+      )}
       <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
         <label
           onDragOver={(e) => {
@@ -490,6 +565,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
             uploads={uploads}
             preview={preview}
             live={live}
+            target={target ?? "live"}
             onPublished={refresh}
           />
         </div>

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { product } from "./fixtures";
-import { loadCatalog } from "./runtime";
+import { isSandbox, loadCatalog, SANDBOX_DATA, withSandbox } from "./runtime";
 
 const ok = (body: unknown) =>
   new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
@@ -59,5 +59,40 @@ describe("loadCatalog", () => {
     });
     expect(r.source).toBe("build");
     await expect(loadCatalog(async () => html404())).rejects.toThrow("catalogue introuvable");
+  });
+});
+
+describe("sandbox data", () => {
+  test("loadCatalog reads the base it is given", async () => {
+    const asked: string[] = [];
+    const r = await loadCatalog(async (u) => {
+      asked.push(u);
+      return u.endsWith("version.json")
+        ? ok({ importId: "s1" })
+        : u.endsWith("catalog.json")
+          ? ok({ products: [product({ sku: "demo" })] })
+          : ok(null);
+    }, SANDBOX_DATA);
+    expect(r.source).toBe("live");
+    expect(r.products[0].sku).toBe("demo");
+    expect(asked.sort()).toEqual([
+      "/sandbox/data/catalog.json",
+      "/sandbox/data/changes.json",
+      "/sandbox/data/version.json",
+    ]);
+  });
+
+  test("?bac=1 turns the sandbox on, other values do not", () => {
+    expect(isSandbox("?bac=1")).toBe(true);
+    expect(isSandbox("?fournisseur=Airalo&bac=1")).toBe(true);
+    expect(isSandbox("?bac=0")).toBe(false);
+    expect(isSandbox("")).toBe(false);
+  });
+
+  test("withSandbox keeps the filters and adds or removes only the flag", () => {
+    expect(withSandbox("?fournisseur=Airalo", true)).toBe("?fournisseur=Airalo&bac=1");
+    expect(withSandbox("?fournisseur=Airalo&bac=1", false)).toBe("?fournisseur=Airalo");
+    expect(withSandbox("?bac=1", false)).toBe("");
+    expect(withSandbox("", true)).toBe("?bac=1");
   });
 });
