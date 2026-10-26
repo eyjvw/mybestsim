@@ -3,6 +3,56 @@
 Idées notées pendant la V1, classées par impact. La V1 couvre le brief à la lettre. Le but
 ici : impressionner sans perdre en lisibilité.
 
+## Fait en v2 (branche `feat/v2-comparator`)
+
+Corrections de la revue du 26/10/2026 :
+
+- débordement horizontal sur mobile corrigé (`min-w-0` sur les cartes de grille) ; un test e2e le
+  vérifie à 360, 390, 768, 1 024 et 1 440 px, et un contrôle négatif prouve qu'il échoue sur
+  l'ancienne mise en page (172 et 202 px de débordement) ;
+- filtres repliables sur mobile, avec compteur : les KPI sont visibles dès le premier écran ;
+- plus aucune donnée accessible seulement au survol (parts et effectifs affichés en clair) ;
+- bloc « À retenir » généré depuis les données (il suit les filtres) ;
+- contraste du gris secondaire remonté au niveau AA (repéré par axe) ;
+- chemins du ledger part1 rendus portables, Bun épinglé en 1.4.4 partout.
+
+Nouveautés :
+
+- **Économies** : forfaits identiques, écart de prix, fournisseur le moins cher le plus souvent,
+  offres imbattables (axe 3) ;
+- **Contrôles métier** : doublons de SKU, prix atypiques, offres incohérentes dans la gamme d'un
+  fournisseur (axe 4) ;
+- **Simulateur de voyage** avec forfaits régionaux et estimation de la data (axe 8) ;
+- **Histogramme des prix** avec médiane et moyenne (axe 9) ;
+- **Page `/import`** : glisser-déposer d'un CSV, rejets, diff et anomalies dans le navigateur
+  (axe 5) ;
+- **Rapport d'import sur chaque PR de données** (axes 1 et 2 : le diff entre deux imports est
+  calculé par la CI à partir du commit de base) ;
+- **Filtres dans l'URL**, bouton « Copier le lien », **export CSV** au format fournisseur (axe 6) ;
+- **Thème clair / sombre / système** ;
+- **Tests e2e Playwright + axe en CI** (axes 10 et 11, axe remplace Lighthouse pour l'accessibilité) ;
+- **Dependabot** (axe 12).
+
+Restent ouverts : comparateur côte à côte (7), `catalog.json` compact (13, 77 Ko gzip : pas
+prioritaire), prévisualisation par PR (14), et toute la partie présentation (15 à 17).
+
+## Fait en v3 et v4
+
+- **DA MyBestSim** : Poppins, bleu `#007bff`, pastilles, cartes arrondies, CTA rouge ; clair par
+  défaut, sombre bleu nuit en option ; largeur jusqu'à 1 720 px.
+- **Données hors du build** (`docs/DEPLOY.md`) : service d'ingestion Bun (API avec jeton,
+  dossier `inbox/`), releases atomiques avec historique, garde-fou sur les variations
+  anormales, webhook ; le dashboard lit les données en direct et affiche « Depuis le dernier
+  import » ; bouton « Publier » sur `/import` ; la CI ignore les changements de données.
+
+En v5 : accueil allégé et sous-pages (`/analyse`, `/offres`, `/qualite`), filtres conservés
+d'une page à l'autre, curseur main sur tous les contrôles, README complet avec captures. Repris
+de la PR #6 : jeton de 24 caractères minimum, limitation des essais, imports « inchangés », CLI
+`bun run import`, smoke test des conteneurs en CI, healthchecks.
+
+Reste à faire : le **bac à sable public** pour que le recruteur publie sans jeton (jeu
+`sandbox` remis à zéro chaque nuit), puis le déploiement.
+
 ## Ordre recommandé
 
 1. Déployer la V1 telle quelle, pour avoir un lien en ligne en sécurité.
