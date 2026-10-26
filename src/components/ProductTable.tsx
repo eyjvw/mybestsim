@@ -1,17 +1,9 @@
 import { useMemo, useState } from "react";
+import { toSupplierCsv } from "../lib/export";
 import { formatEur, formatEurPerGb, formatInt, formatTier } from "../lib/format";
+import { type SortDir as Dir, type SortKey, sortProducts } from "../lib/sort";
 import { eurPerGb } from "../lib/stats";
 import type { Product } from "../lib/types";
-
-type SortKey =
-  | "name"
-  | "provider"
-  | "countryName"
-  | "dataGb"
-  | "validityDays"
-  | "price"
-  | "eurPerGb";
-type Dir = "asc" | "desc";
 
 const PAGE_SIZE = 15;
 
@@ -24,26 +16,6 @@ const COLUMNS: { key: SortKey; label: string; numeric?: boolean }[] = [
   { key: "price", label: "Prix", numeric: true },
   { key: "eurPerGb", label: "€/Go", numeric: true },
 ];
-
-// Unlimited offers sort after every finite volume; their €/Go is undefined, so they sort last.
-function sortValue(p: Product, key: SortKey): number | string {
-  if (key === "dataGb") return p.dataGb ?? Number.POSITIVE_INFINITY;
-  if (key === "eurPerGb") return eurPerGb(p) ?? Number.POSITIVE_INFINITY;
-  return p[key];
-}
-
-export function sortProducts(products: Product[], key: SortKey, dir: Dir): Product[] {
-  const sign = dir === "asc" ? 1 : -1;
-  return [...products].sort((a, b) => {
-    const va = sortValue(a, key);
-    const vb = sortValue(b, key);
-    const c =
-      typeof va === "string"
-        ? va.localeCompare(vb as string, "fr")
-        : (va as number) - (vb as number);
-    return c !== 0 ? c * sign : a.sku.localeCompare(b.sku);
-  });
-}
 
 const normalise = (s: string) =>
   s
@@ -77,13 +49,24 @@ export function ProductTable({ products, pendingTotal }: Props) {
   const current = Math.min(page, pages - 1);
   const visible = rows.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
 
+  const exportCsv = () => {
+    // Same columns as the supplier files: the export can be re-imported in /import.
+    const blob = new Blob([toSupplierCsv(rows)], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "offres-mybestsim.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const toggle = (key: SortKey) => {
     setSort((s) => ({ key, dir: s.key === key && s.dir === "asc" ? "desc" : "asc" }));
     setPage(0);
   };
 
   return (
-    <div className="rounded-xl border border-line bg-surface">
+    <div className="rounded-[18px] border border-line bg-surface shadow-card">
       <div className="flex flex-col gap-2 border-b border-line p-3 sm:flex-row sm:items-center sm:justify-between">
         <label className="relative block sm:w-80">
           <span className="sr-only">Rechercher une offre</span>
@@ -95,14 +78,74 @@ export function ProductTable({ products, pendingTotal }: Props) {
               setPage(0);
             }}
             placeholder="Rechercher : Japon, Holafly, 20 Go…"
-            className="h-9 w-full rounded-lg border border-line bg-page px-3 text-sm placeholder:text-ink-3"
+            className="h-10 w-full rounded-full border border-line bg-surface px-4 text-sm shadow-card placeholder:text-ink-3"
           />
         </label>
-        <p className="text-sm text-ink-2" aria-live="polite">
-          {formatInt(count)} résultat{count > 1 ? "s" : ""}
-        </p>
+        <div className="flex items-center justify-between gap-4 sm:justify-end">
+          <p className="text-sm text-ink-2" aria-live="polite" data-results={count}>
+            {formatInt(count)} résultat{count > 1 ? "s" : ""}
+          </p>
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={pendingTotal !== undefined || rows.length === 0}
+            className="rounded-full border border-accent/30 bg-surface px-4 py-1.5 text-sm font-semibold text-accent hover:border-accent disabled:opacity-50"
+          >
+            Exporter en CSV
+          </button>
+        </div>
       </div>
-      <div className="overflow-x-auto">
+      {/* Small screens: one card per offer, sorted with the same control as the table. */}
+      <div className="md:hidden">
+        <label className="flex items-center gap-2 border-b border-line px-3 py-2 text-sm">
+          <span className="text-ink-3">Trier par</span>
+          <select
+            className="h-9 rounded-full border border-line bg-surface px-3 text-sm"
+            value={`${sort.key}:${sort.dir}`}
+            onChange={(e) => {
+              const [key, dir] = e.target.value.split(":") as [SortKey, Dir];
+              setSort({ key, dir });
+              setPage(0);
+            }}
+          >
+            {COLUMNS.flatMap((c) => [
+              <option key={`${c.key}:asc`} value={`${c.key}:asc`}>
+                {c.label} {c.numeric ? "croissant" : "A → Z"}
+              </option>,
+              <option key={`${c.key}:desc`} value={`${c.key}:desc`}>
+                {c.label} {c.numeric ? "décroissant" : "Z → A"}
+              </option>,
+            ])}
+          </select>
+        </label>
+        <ul className="divide-y divide-line/70">
+          {visible.map((p) => (
+            <li key={p.sku} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-3 py-2.5">
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">{p.name}</span>
+                <span className="block truncate text-xs text-ink-2">
+                  {p.provider} · {p.network}
+                  {p.topUp ? " · rechargeable" : ""}
+                </span>
+              </span>
+              <span className="text-right">
+                <span className="block text-sm font-semibold tabular-nums">
+                  {formatEur(p.price)}
+                </span>
+                <span className="block text-xs text-ink-3 tabular-nums">
+                  {formatEurPerGb(eurPerGb(p))}
+                </span>
+              </span>
+            </li>
+          ))}
+          {visible.length === 0 && (
+            <li className="px-3 py-10 text-center text-sm text-ink-3">
+              Aucune offre ne correspond.
+            </li>
+          )}
+        </ul>
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[46rem] text-sm">
           <thead>
             <tr className="border-b border-line text-left text-xs text-ink-3">
@@ -169,7 +212,7 @@ export function ProductTable({ products, pendingTotal }: Props) {
           type="button"
           onClick={() => setPage(current - 1)}
           disabled={current === 0}
-          className="rounded-md px-2 py-1 hover:bg-surface-2 disabled:opacity-40"
+          className="rounded-full border border-accent/30 bg-surface px-4 py-1.5 font-semibold text-accent shadow-card transition-colors hover:border-accent hover:bg-accent-tint disabled:border-line disabled:text-ink-3 disabled:shadow-none"
         >
           ← Précédent
         </button>
@@ -180,7 +223,7 @@ export function ProductTable({ products, pendingTotal }: Props) {
           type="button"
           onClick={() => setPage(current + 1)}
           disabled={current >= pages - 1}
-          className="rounded-md px-2 py-1 hover:bg-surface-2 disabled:opacity-40"
+          className="rounded-full border border-accent/30 bg-surface px-4 py-1.5 font-semibold text-accent shadow-card transition-colors hover:border-accent hover:bg-accent-tint disabled:border-line disabled:text-ink-3 disabled:shadow-none"
         >
           Suivant →
         </button>

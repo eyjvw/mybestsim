@@ -1,0 +1,23 @@
+---
+import Dashboard from "../components/Dashboard";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import Layout from "../layouts/Layout.astro";
+import { dashboardProps } from "../lib/page-props";
+
+const props = dashboardProps();
+---
+
+<Layout title="Offres · Tableau de bord MyBestSim" description="Toutes les offres de la sélection, à trier, chercher et exporter au format fournisseur, et la meilleure eSIM pour un voyage donné.">
+  <div class="mx-auto max-w-[1720px] px-4 pb-16 sm:px-6 lg:px-10 2xl:px-14">
+    <SiteHeader current="/offres" />
+    <header class="pt-8 pb-6 lg:pt-10">
+      <h1 class="text-3xl leading-[1.1] font-bold tracking-tight sm:text-4xl lg:text-5xl">
+        Offres et <em class="text-accent">simulateur</em>
+      </h1>
+      <p class="mt-3 max-w-3xl text-[15px] text-ink-2">Toutes les offres de la sélection, à trier, chercher et exporter au format fournisseur, et la meilleure eSIM pour un voyage donné.</p>
+    </header>
+    <Dashboard client:load view="offers" {...props} />
+    <SiteFooter />
+  </div>
+</Layout>

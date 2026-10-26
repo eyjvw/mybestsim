@@ -1,0 +1,24 @@
+---
+import { BUILD, REPO_URL } from "../lib/build-info";
+
+const builtOn = new Date(BUILD.builtAt).toLocaleDateString("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Paris",
+});
+---
+
+<footer
+  class="mt-16 flex flex-col gap-2 border-t border-line pt-6 text-xs text-ink-3 sm:flex-row sm:justify-between"
+>
+  <p>
+    Site construit le {builtOn} · version <code>{BUILD.sha.slice(0, 7)}</code> · instantané des données :{" "}
+    <a class="underline hover:text-ink" href="/stats.json">stats.json</a>,{" "}
+    <a class="underline hover:text-ink" href="/catalog.json">catalog.json</a>
+  </p>
+  <p>
+    Réalisé par Samuel Bonneau pour le test MyBestSim · Astro + Bun ·{" "}
+    <a class="underline hover:text-ink" href={REPO_URL}>code source</a>
+  </p>
+</footer>

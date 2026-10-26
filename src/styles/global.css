@@ -1,36 +1,69 @@
 @import "tailwindcss";
 
+/* Poppins, the mybestsim.com typeface, self-hosted (latin subset): no third-party request,
+   compatible with the site's CSP (default-src 'self'). */
+@import "@fontsource/poppins/latin-400.css";
+@import "@fontsource/poppins/latin-500.css";
+@import "@fontsource/poppins/latin-600.css";
+@import "@fontsource/poppins/latin-700.css";
+@import "@fontsource/poppins/latin-700-italic.css";
+
+/* MyBestSim identity, light by default whatever the OS setting (like mybestsim.com).
+   Text tokens are tuned to WCAG AA on every surface; chart slots are validated with the
+   dataviz palette script (brand blue #007bff first). */
 :root {
   color-scheme: light;
-  --page: #f4f4f1;
-  --surface: #fcfcfb;
-  --surface-2: #f0efec;
-  --line: #e2e1dc;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --ink-3: #75746f;
-  /* Categorical slots 1-3 from the validated dataviz palette (light). */
-  --s1: #2a78d6;
+  --page: #f6f9fd;
+  --surface: #ffffff;
+  --surface-2: #eef5ff;
+  --line: #e2e8f0;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --ink-3: #5b6b82;
+  /* Categorical chart slots 1-3 (light). */
+  --s1: #007bff;
   --s2: #eb6834;
   --s3: #1baf7a;
-  --track: #e9e8e4;
+  --track: #e8eef7;
+  /* Baseline / annotation rule (dataviz chrome). */
+  --rule: #cbd5e1;
+  /* Links, active filters: brand blue darkened to pass AA as text and under white text. */
+  --accent: #0066cc;
+  --accent-tint: #e6f0ff;
+  /* Text on an accent fill. */
+  --on-accent: #ffffff;
+  /* Call to action, the red of the site's "Voir l'offre" buttons. */
+  --cta: #de1414;
+  /* Brand yellow, used for "à vérifier" badges with navy text, always with an icon. */
+  --warn: #ffcc00;
+  --good: #10b981;
+  --glow-1: rgb(186 230 253 / 0.55);
+  --glow-2: rgb(167 243 208 / 0.35);
+  --card-shadow: 0 10px 30px -18px rgb(15 23 42 / 0.18);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --page: #121211;
-    --surface: #1a1a19;
-    --surface-2: #232321;
-    --line: #2f2f2c;
-    --ink: #f0efec;
-    --ink-2: #c3c2b7;
-    --ink-3: #9a998f;
-    --s1: #3987e5;
-    --s2: #d95926;
-    --s3: #199e70;
-    --track: #2a2a28;
-  }
+/* Optional navy dark theme, applied only when the visitor picks it (or picks "Système"
+   on a dark OS): same hues stepped for the dark surface. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0b1220;
+  --surface: #111b2e;
+  --surface-2: #172338;
+  --line: #233149;
+  --ink: #e8eef7;
+  --ink-2: #b6c2d4;
+  --ink-3: #8fa0b8;
+  --s1: #3d95ff;
+  --s2: #d95926;
+  --s3: #199e70;
+  --track: #1d2a42;
+  --rule: #33435f;
+  --accent: #66b2ff;
+  --accent-tint: #16294a;
+  --on-accent: #0b1220;
+  --glow-1: rgb(37 99 235 / 0.18);
+  --glow-2: rgb(16 185 129 / 0.08);
+  --card-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.6);
 }
 
 @theme inline {
@@ -45,20 +78,49 @@
   --color-s2: var(--s2);
   --color-s3: var(--s3);
   --color-track: var(--track);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-tint: var(--accent-tint);
+  --color-on-accent: var(--on-accent);
+  --color-cta: var(--cta);
+  --color-warn: var(--warn);
+  --color-good: var(--good);
+  --shadow-card: var(--card-shadow);
+  --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 html {
   background: var(--page);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
-  font-feature-settings:
-    "tnum" 1,
-    "cv11" 1;
+}
+
+/* Soft light-blue and mint glows in the corners, as on the mybestsim.com hero. */
+body {
+  background:
+    radial-gradient(48rem 28rem at 100% -6rem, var(--glow-1), transparent 70%),
+    radial-gradient(40rem 26rem at -8rem 32rem, var(--glow-2), transparent 70%), var(--page);
+  background-repeat: no-repeat;
+}
+
+/* Tailwind v4 resets buttons to the default cursor: every clickable control shows the hand. */
+@layer base {
+  button:not(:disabled),
+  [role="button"],
+  select:not(:disabled),
+  summary,
+  label:has(> input[type="file"]),
+  label:has(> input[type="checkbox"]) {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
 }
 
 :focus-visible {
-  outline: 2px solid var(--s1);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

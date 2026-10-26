@@ -1,11 +1,15 @@
 ---
+import { formatInt } from "../lib/format";
+
 interface Props {
   unlimited: number;
   /** Offers priced exactly at the 100 € threshold. */
   atThreshold: number;
+  /** Products listed under several SKUs by the same provider. */
+  duplicates: number;
 }
 
-const { unlimited, atThreshold } = Astro.props;
+const { unlimited, atThreshold, duplicates } = Astro.props;
 
 const decisions = [
   {
@@ -32,6 +36,18 @@ const decisions = [
     body: "Le prix au Go n'a de sens que pour un volume chiffré. La médiane résiste mieux que la moyenne aux forfaits extrêmes (1 Go très cher au Go, 50 Go très bon marché).",
   },
   {
+    title: "Les doublons sont comptés, mais signalés",
+    body: `${formatInt(duplicates)} produits identiques apparaissent sous plusieurs SKU chez un même fournisseur, parfois à des prix différents. Le sujet demande le nombre de produits du catalogue : je les compte tous, et je les liste dans les contrôles métier plutôt que de choisir à la place de l'équipe lequel garder.`,
+  },
+  {
+    title: "Une offre « battue » l'est sur tous les critères",
+    body: "Une offre est battue quand la même destination propose moins cher avec au moins autant de data, une durée au moins égale, un réseau au moins aussi bon (5G ≥ 4G) et la recharge si elle l'a. Critère strict, sans pondération arbitraire entre data et durée.",
+  },
+  {
+    title: "Les forfaits régionaux couvrent les pays habituels",
+    body: "Les CSV ne listent pas la couverture des forfaits Europe, Asie ou Amérique du Nord. Le simulateur suppose la couverture usuelle (UE + Royaume-Uni, Suisse, Norvège pour l'Europe ; Asie de l'Est et du Sud-Est ; États-Unis, Canada, Mexique) et l'indique sur chaque résultat. La case « forfaits régionaux » permet de s'en passer.",
+  },
+  {
     title: "Rien n'est corrigé en silence",
     body: "Chaque ligne est validée (colonnes, types, devise, réseau, cohérence volume/libellé, SKU unique). Une ligne invalide est écartée et listée dans le rapport de qualité, et la CI bloque le déploiement.",
   },
@@ -39,16 +55,16 @@ const decisions = [
 ---
 
 <section id="decisions" aria-labelledby="decisions-title" class="scroll-mt-28">
-  <h2 id="decisions-title" class="text-lg font-semibold tracking-tight">Choix assumés</h2>
+  <h2 id="decisions-title" class="text-xl font-bold tracking-tight sm:text-2xl">Choix assumés</h2>
   <p class="mt-1 max-w-3xl text-sm text-ink-2">
     Le sujet laisse quelques points ouverts. Voici comment je les ai tranchés, et pourquoi.
   </p>
-  <ol class="mt-4 grid gap-3 md:grid-cols-2">
+  <ol class="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
     {
       decisions.map((d, i) => (
-        <li class="rounded-xl border border-line bg-surface p-4">
+        <li class="rounded-[18px] border border-line bg-surface p-4 shadow-card">
           <p class="flex gap-2 text-sm font-semibold">
-            <span class="text-ink-3 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+            <span class="text-accent tabular-nums">{String(i + 1).padStart(2, "0")}</span>
             {d.title}
           </p>
           <p class="mt-1.5 pl-7 text-sm leading-relaxed text-ink-2">{d.body}</p>
