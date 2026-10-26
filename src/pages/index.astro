@@ -1,12 +1,78 @@
 ---
+import Dashboard from "../components/Dashboard";
+import Decisions from "../components/Decisions.astro";
+import { sortProducts } from "../components/ProductTable";
+import Quality from "../components/Quality.astro";
 import Layout from "../layouts/Layout.astro";
+import { BUILD } from "../lib/build-info";
+import { isRegion } from "../lib/filters";
+import { formatInt } from "../lib/format";
+import { loadCatalog } from "../lib/load";
+import { computeStats, PRICE_THRESHOLD } from "../lib/stats";
+
+const { products, quality } = loadCatalog();
+const stats = computeStats(products);
+
+const destinations = [...new Map(products.map((p) => [p.countryCode, p.countryName])).entries()]
+  .map(([code, name]) => ({ code, name, region: isRegion(code) }))
+  .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+const providers = stats.byProvider.map((p) => p.provider).sort((a, b) => a.localeCompare(b, "fr"));
+const initialRows = sortProducts(products, "price", "asc").slice(0, 15);
+const atThreshold = products.filter((p) => p.price === PRICE_THRESHOLD).length;
+
+const builtOn = new Date(BUILD.builtAt).toLocaleDateString("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Paris",
+});
 ---
 
 <Layout
   title="Catalogue eSIM · Tableau de bord MyBestSim"
-  description="Statistiques clés du catalogue eSIM importé des fichiers fournisseurs."
+  description="Statistiques clés du catalogue eSIM importé des fichiers fournisseurs : volumes, prix, data et répartition par fournisseur."
 >
-  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-    <h1 class="text-2xl font-semibold tracking-tight">Catalogue eSIM : tableau de bord</h1>
-  </main>
+  <div class="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+    <header class="flex flex-col gap-4 pt-8 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-xs font-medium tracking-wide text-s1 uppercase">MyBestSim · Import fournisseurs</p>
+        <h1 class="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Catalogue eSIM : tableau de bord</h1>
+        <p class="mt-2 max-w-2xl text-sm text-ink-2">
+          Généré automatiquement à partir des {quality.files} fichiers CSV fournisseurs
+          ({`${formatInt(quality.valid)} offres`}). Les filtres recalculent chaque indicateur en direct.
+        </p>
+      </div>
+      <nav aria-label="Sections" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-2">
+        <a class="hover:text-ink" href="#kpis">Indicateurs</a>
+        <a class="hover:text-ink" href="#bonus">Bonus</a>
+        <a class="hover:text-ink" href="#products">Offres</a>
+        <a class="hover:text-ink" href="#decisions">Choix</a>
+        <a class="hover:text-ink" href="#quality">Qualité</a>
+      </nav>
+    </header>
+
+    <Dashboard
+      client:load
+      initialStats={stats}
+      initialRows={initialRows}
+      options={{ providers, destinations }}
+      catalogUrl="/catalog.json"
+    />
+
+    <div class="mt-12 space-y-12">
+      <Decisions unlimited={stats.data.unlimited} atThreshold={atThreshold} />
+      <Quality quality={quality} />
+    </div>
+
+    <footer
+      class="mt-16 flex flex-col gap-2 border-t border-line pt-6 text-xs text-ink-3 sm:flex-row sm:justify-between"
+    >
+      <p>
+        Données mises à jour le {builtOn} · version <code>{BUILD.sha.slice(0, 7)}</code> · données brutes :
+        <a class="underline hover:text-ink" href="/stats.json">stats.json</a>,
+        <a class="underline hover:text-ink" href="/catalog.json">catalog.json</a>
+      </p>
+      <p>Réalisé par Samuel Bonneau pour le test MyBestSim · Astro + Bun</p>
+    </footer>
+  </div>
 </Layout>
