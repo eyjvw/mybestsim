@@ -1,5 +1,5 @@
 # Build the static site with Bun, then serve dist/ with Caddy.
-FROM oven/bun:1.4.2 AS build
+FROM oven/bun:1.4.4 AS build
 WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 RUN bun install --frozen-lockfile

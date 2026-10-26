@@ -65,7 +65,7 @@ l'IA.
 
 | Brique | Version |
 | --- | --- |
-| Runtime et gestionnaire de paquets | Bun 1.4.2 (`bunfig.toml` : installs exactes) |
+| Runtime et gestionnaire de paquets | Bun 1.4.4 (`bunfig.toml` : installs exactes) |
 | Site | Astro 7.4.2 en sortie statique, îlot React 19 (`client:load`) |
 | Styles | Tailwind v4 (`@tailwindcss/vite`) |
 | Lint et format | Biome 2.6 |
