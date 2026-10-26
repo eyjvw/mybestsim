@@ -11,6 +11,7 @@
     "check": "bunx --bun astro check",
     "lint": "biome ci .",
     "format": "biome check --write .",
+    "validate": "bun scripts/validate-data.ts",
     "test": "bun test"
   },
   "dependencies": {
