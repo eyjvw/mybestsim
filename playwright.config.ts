@@ -50,6 +50,9 @@ export default defineConfig({
       url: `http://127.0.0.1:${LIVE_PORT}/api/health`,
       reuseExistingServer: false,
       timeout: 30_000,
+      // Playwright SIGKILLs its servers by default: the SIGTERM handler is what removes the
+      // ephemeral volume from the temp directory.
+      gracefulShutdown: { signal: "SIGTERM", timeout: 5_000 },
       env: {
         PORT: String(LIVE_PORT),
         HOST: "127.0.0.1",
