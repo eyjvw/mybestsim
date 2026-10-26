@@ -1,5 +1,5 @@
-// Validates the image Caddyfile with a real Caddy 2 binary (PATH or ~/.local/bin),
-// and checks the validator rejects a broken copy (positive control).
+// Validates the image Caddyfile and the VPS site block (deploy/Caddyfile) with a real Caddy 2
+// binary (PATH or ~/.local/bin), and checks the validator rejects a broken copy (positive control).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -35,7 +35,12 @@ try {
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
-const r = validate("docker/Caddyfile");
-const out = `${r.stdout}${r.stderr}`;
-if (r.status !== 0) fail(out);
-console.log(`caddy ${version.split(" ")[0]}: ${out.match(/Valid configuration/)?.[0] ?? "?"}`);
+let out = "";
+for (const file of ["docker/Caddyfile", "deploy/Caddyfile"]) {
+  const r = validate(file);
+  out = `${r.stdout}${r.stderr}`;
+  if (r.status !== 0) fail(`${file}: ${out}`);
+}
+console.log(
+  `caddy ${version.split(" ")[0]}: docker/ and deploy/ ${out.match(/Valid configuration/)?.[0] ?? "?"}`,
+);

@@ -4,7 +4,7 @@ Réponse au test de recrutement « Stagiaire Développeur IA & Automatisation »
 Le projet lit les fichiers CSV des fournisseurs eSIM et en tire un tableau de bord en ligne.
 Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 
-- **Dashboard en ligne** : <https://mybestsim.sbonneau.xyz> (déploiement en cours)
+- **Dashboard en ligne** : <https://mybestsim.sbonneau.xyz>
 - **Article SEO (partie 2)** : à venir
 - **Code** : ce dépôt
 
@@ -248,7 +248,7 @@ server/               service d'ingestion (API, inbox, releases, webhook, sécur
 scripts/              validation, rapport d'import, CLI d'import, smoke test, captures
 e2e/                  tests Playwright
 docker/, Dockerfile   images web (Caddy) et ingest (Bun)
-deploy/               services Docker Compose pour le VPS
+deploy/               services Docker Compose et bloc Caddy du VPS
 docs/                 déploiement, feuille de route, captures
 checks/               oracles indépendants : chiffres, service, CI (voir checks/README.md)
 ```
