@@ -1,0 +1,10 @@
+.git
+.github
+.astro
+.unlazy
+node_modules
+dist
+docs
+*.pdf
+*.zip
+*.md
