@@ -47,7 +47,7 @@ prioritaire), prévisualisation par PR (14), et toute la partie présentation (1
 
 En v5 : accueil allégé et sous-pages (`/analyse`, `/offres`, `/qualite`), filtres conservés
 d'une page à l'autre, curseur main sur tous les contrôles, README complet avec captures. Repris
-de la PR #6 : jeton de 24 caractères minimum, limitation des essais, imports « inchangés », CLI
+d'un prototype SSR + SQLite : jeton de 24 caractères minimum, limitation des essais, imports « inchangés », CLI
 `bun run import`, smoke test des conteneurs en CI, healthchecks.
 
 Reste à faire : le **bac à sable public** pour que le recruteur publie sans jeton (jeu

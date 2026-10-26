@@ -4,4 +4,4 @@ export const BUILD = {
   builtAt: new Date().toISOString(),
 };
 
-export const REPO_URL = "https://github.com/eyjvw/MyBestSim-Dashboard";
+export const REPO_URL = "https://github.com/eyjvw/mybestsim";

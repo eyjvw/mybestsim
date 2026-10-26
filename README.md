@@ -213,6 +213,9 @@ flowchart LR
   `@playwright/test`, qui doit suivre l'image Playwright du job e2e.
 - L'historique suit GitHub Flow : une PR par sujet, squash merge une fois la CI verte, et des
   commits au format Conventional Commits.
+- Le dépôt a été recréé à la fin de la partie 1, pour un historique propre : chaque commit de
+  l'ancien `main` a été rejoué en PR, CI verte à chaque étape, sans les fichiers qui restent en
+  local (sujet, archive de données, ledgers).
 
 ## Lancer le projet
 

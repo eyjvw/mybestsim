@@ -1,12 +1,12 @@
 # MyBestSim : test de recrutement
 
-Contexte de travail pour Claude Code, pour reprendre le projet sur une autre machine. Fichier
-temporaire : le repo final sera recréé proprement à la fin (voir « Repo final »).
+Contexte de travail pour Claude Code, pour reprendre le projet sur une autre machine.
 
 ## Le test
 
-- Brief : `Test de recrutement - Stagiaire Développeur IA & Automatisation.pdf` (racine).
-- Données brutes : `donnees-test-mybestsim.zip`, déjà extraites dans `data/`.
+- Brief : `Test de recrutement - Stagiaire Développeur IA & Automatisation.pdf` (racine, local,
+  hors dépôt).
+- Données brutes : `donnees-test-mybestsim.zip` (local, hors dépôt), déjà extraites dans `data/`.
 
 **Partie 1, dashboard.** Programme ou automatisation qui lit les 18 CSV fournisseurs et génère un
 dashboard en ligne (simple lien, aucune installation). Il doit afficher :
@@ -155,8 +155,7 @@ e2e s'appellent `*.e2e.ts` pour que `bun test` (qui prend aussi `*.spec.ts`) ne 
     Playwright) et les deux builds Docker ; au push sur `main`, pas de second e2e ;
   - `.github/workflows/data-report.yml` poste (ou met à jour) un rapport d'import sur chaque PR
     qui touche `data/` ; Dependabot (`.github/dependabot.yml`) couvre bun, actions et docker ;
-  - sur `main`, elle pousse `ghcr.io/eyjvw/mybestsim-dashboard` et `…-ingest` (tags `latest`
-    et sha) ;
+  - sur `main`, elle pousse `ghcr.io/eyjvw/mybestsim` et `…-ingest` (tags `latest` et sha) ;
   - Watchtower sur le VPS tire l'image `latest` ;
   - le job `verify` (attente du sha en ligne, puis smoke test) ne tourne que si la variable de
     repo `DEPLOY_ENABLED` vaut `true`.
@@ -203,38 +202,41 @@ e2e s'appellent `*.e2e.ts` pour que `bun test` (qui prend aussi `*.spec.ts`) ne 
 
 ## État au 26/10/2026
 
-- `main` : PR #1 à #5 (V1), puis #7 (Bun 1.4.4), #8 (logique métier), #9 (service
-  d'ingestion), #10 (UI : comparateur, sous-pages, données live, DA MyBestSim), #11 (CI :
-  Playwright, smoke des conteneurs, pipeline allégé) et la PR docs (README, DEPLOY, ledgers).
-  CI verte ; deux images sur GHCR (`mybestsim-dashboard`, `mybestsim-dashboard-ingest`),
-  packages **privés** pour l'instant.
-- PR #6 (import en SSR + SQLite, autre session) : fermée au profit de #9 ; ses meilleures idées
-  ont été reprises (rate-limit, `unchanged`, CLI, smoke des conteneurs).
-- Gates unlazy : v2, v3-da, v4-runtime-data et v5-pages-readme sont ALL MET ; part1 G0 à
-  relancer (chemin du linter rendu portable), G4 à G8 attendent le repo final et le déploiement.
-- Le site n'est **pas encore déployé**. Le DNS `mybestsim.sbonneau.xyz` ne résolvait pas encore le
-  26/10. L'utilisateur doit ajouter l'enregistrement A `mybestsim` vers `51.210.7.117` chez
+- Dépôt : `eyjvw/mybestsim`, **privé**, squash seul, branche supprimée au merge. L'ancien dépôt
+  `eyjvw/MyBestSim-Dashboard` est abandonné : ses PR montraient d'anciens commits avec un lien de
+  session, et il suivait le PDF, le zip et `.unlazy/`.
+- L'historique a été rejoué : une PR squash par commit de l'ancien `main`, CI verte à chaque
+  fois. Aucun commit ne contient `.unlazy/`, un PDF ou un zip (ignorés dès le premier commit).
+  - #1 catalog, #2 CI, #3 stats, #4 dashboard, #5 docs, #6 Bun 1.4.4, #7 logique métier,
+    #8 service d'ingestion, #9 UI (comparateur, sous-pages, données live, DA MyBestSim),
+    #10 CI (Playwright, smoke des conteneurs), #11 README et docs, #14 garde-fous Dependabot,
+    #16 `checks/`, puis le renommage du dépôt. Les numéros manquants sont des PR Dependabot.
+  - Le tag `pre-mobile-fix` marque #5, dernière mise en page avant le correctif mobile (contrôle
+    négatif de `checks/verify-overflow-control.mjs`).
+  - Une PR d'import en SSR + SQLite (autre session, ancien dépôt) a été fermée ; ses meilleures
+    idées ont été reprises (rate-limit, `unchanged`, CLI, smoke des conteneurs).
+- Images GHCR : `ghcr.io/eyjvw/mybestsim` (web) et `ghcr.io/eyjvw/mybestsim-ingest`, packages
+  **privés** pour l'instant.
+- Le site n'est **pas encore déployé**. URL retenue : `mybestsim.sbonneau.xyz`. Le 26/10, elle ne
+  résolvait pas encore : il faut l'enregistrement A `mybestsim` vers `51.210.7.117` chez
   Namecheap.
-- Reste à faire : bac à sable public de démo, déploiement, partie 2 (article SEO), repo final.
+- Reste à faire : déploiement, bac à sable public de démo, partie 2 (article SEO), présentation.
 
 ## Prochaines étapes
 
 ### 1. Déploiement
 
-1. **Package GHCR.** Le VPS est connecté à `ghcr.io` en `vynq-studio` : il ne peut pas tirer un
+1. **Packages GHCR.** Le VPS est connecté à `ghcr.io` en `vynq-studio` : il ne peut pas tirer un
    package privé d'`eyjvw`.
-   - Recommandé : passer le package en public. Le repo, lui, reste privé.
+   - Recommandé : passer `mybestsim` et `mybestsim-ingest` en public. Le dépôt, lui, reste privé.
    - Autre option : donner l'accès en lecture à `vynq-studio`.
-   Il y a maintenant deux packages : `mybestsim-dashboard` et `mybestsim-dashboard-ingest`.
-2. **VPS** (`ssh -i ~/.ssh/id_ed25519 debian@51.210.7.117`), avec accord à chaque étape.
-   Détail des services, du volume et des variables dans `docs/DEPLOY.md` :
+2. **VPS** (`ssh debian@51.210.7.117`, clé `eyjvw`), avec accord à chaque étape. Détail des
+   services, du volume et des variables dans `docs/DEPLOY.md` :
    1. Sauvegarder `~/infra/caddy/Caddyfile` en `Caddyfile.before-mybestsim`, et
       `~/infra/docker-compose.yml` en `docker-compose.yml.before-mybestsim`.
-   2. Dans le compose, ajouter le service `mybestsim` :
-      - image `ghcr.io/eyjvw/mybestsim-dashboard:latest` ;
-      - `expose: ["80"]` ;
-      - label `com.centurylinklabs.watchtower.enable: "true"` ;
-      - même réseau que `caddy`.
+   2. Ajouter au compose les services de `deploy/docker-compose.yml` (`mybestsim`,
+      `mybestsim-ingest`, `mybestsim-data-init`, volume `mybestsim-data`), sur le réseau de
+      `caddy`.
    3. Ajouter le bloc Caddy `mybestsim.sbonneau.xyz` avec `reverse_proxy mybestsim:80` et ces
       en-têtes :
       - HSTS ;
@@ -247,11 +249,10 @@ e2e s'appellent `*.e2e.ts` pour que `bun test` (qui prend aussi `*.spec.ts`) ne 
    4. Lancer `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`, puis recharger
       Caddy.
    5. Créer `~/infra/.env.mybestsim` (`INGEST_TOKEN` via `openssl rand -hex 32`, `WEBHOOK_URL`
-      facultatif), ajouter `mybestsim-ingest` et le volume `mybestsim-data`
-      (`deploy/docker-compose.yml`), puis lancer `docker compose up -d mybestsim-ingest mybestsim`.
-3. **Activer le job `verify`** : `gh variable set DEPLOY_ENABLED --body true`.
-4. **Vérifier** : gates G5 et G6 (`.unlazy/part1/checks/verify-live.mjs`), puis G7 à la main dans
-   un navigateur sur l'URL en ligne.
+      facultatif), puis lancer
+      `docker compose up -d mybestsim-data-init mybestsim-ingest mybestsim`.
+3. **Activer le job `verify`** : `gh variable set DEPLOY_ENABLED --body true -R eyjvw/mybestsim`.
+4. **Vérifier** : `bun run checks:live`, puis à la main dans un navigateur sur l'URL en ligne.
 
 ### 2. Partie 2
 
@@ -266,25 +267,17 @@ Responsive sur toutes les plateformes. Voir `docs/ROADMAP.md`.
 - README : lien en ligne, captures desktop, mobile et sombre dans `docs/`, schéma d'architecture
   et de CI/CD, choix assumés, lancement, usage de l'IA.
 - Vidéo Loom de 1 à 2 minutes.
-- Texte du mail.
-
-### 5. Repo final
-
-Recréer un repo propre, rejouer l'historique en PR et le rendre public. En effet :
-
-- les onglets « Commits » des PR #1 à #4 du repo actuel montrent encore d'anciens commits avec un
-  lien de session ;
-- le ledger `verify-repo.mjs` refuse le PDF, le zip et `.unlazy/` dans le suivi git.
-
-À ne **pas** inclure dans le repo final : le PDF, le zip, `.unlazy/`, ce fichier `CLAUDE.md`.
+- Texte du mail. Le dépôt est privé : inviter le recruteur, ou le passer en public, avant
+  d'envoyer le lien GitHub.
 
 ## Reprendre sur une autre machine
 
 ```sh
-git clone git@github.com:eyjvw/MyBestSim-Dashboard.git && cd MyBestSim-Dashboard
+git clone git@github.com:eyjvw/mybestsim.git && cd mybestsim
 bun install && bun run validate && bun test && bun run dev
 ```
 
-Côté Claude Code, il faut aussi installer la skill `unlazy` (voir plus haut). La skill `dataviz`
-est déjà intégrée à Claude Code. Pour l'e2e : `bunx playwright install chromium` et les
-bibliothèques système (voir « Commandes »).
+Le PDF du sujet, le zip et les ledgers `.unlazy/` ne sont pas dans le dépôt : les copier à la
+main. Côté Claude Code, il faut aussi installer la skill `unlazy` (voir plus haut). La skill
+`dataviz` est déjà intégrée à Claude Code. Pour l'e2e : `bunx playwright install chromium` et
+les bibliothèques système (voir « Commandes »).

@@ -107,8 +107,7 @@ Ce fichier n'est jamais commité ni affiché.
 Les étapes du `CLAUDE.md` (« Prochaines étapes », Déploiement) s'appliquent avec ces
 changements :
 
-1. Rendre publics les deux packages GHCR : `mybestsim-dashboard` et
-   `mybestsim-dashboard-ingest`.
+1. Rendre publics les deux packages GHCR : `mybestsim` et `mybestsim-ingest`.
 2. Ajouter au compose les services de `deploy/docker-compose.yml` : `mybestsim`,
    `mybestsim-ingest` avec le volume `mybestsim-data`, et `mybestsim-data-init`. Les deux
    premiers sont sur le réseau de `caddy`. Un volume neuf appartient à root, et le service
@@ -136,6 +135,6 @@ changements :
 - Sur `main`, les images `web` et `ingest` sont construites en parallèle et poussées, avec un
   cache par cible.
 
-Le repo final est public : les minutes Actions sont alors gratuites sur les runners
-standards. Le découplage reste utile, car un import quotidien ne devrait jamais attendre un
-build.
+Le dépôt est privé : ses minutes Actions sont limitées (2 000 par mois sur l'offre gratuite de
+GitHub). Le découplage les préserve, et un import quotidien ne devrait de toute façon jamais
+attendre un build.
