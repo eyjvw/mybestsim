@@ -25,4 +25,5 @@ export const SITE_NAV = [
   { href: "/offres", label: "Offres", filters: true },
   { href: "/qualite", label: "Qualité", filters: false },
   { href: "/import", label: "Tester un import", filters: false },
+  { href: "/blog/internet-croisiere-esim/", label: "Article", filters: false },
 ] as const;

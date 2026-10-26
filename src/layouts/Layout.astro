@@ -4,9 +4,11 @@ import "../styles/global.css";
 interface Props {
   title: string;
   description: string;
+  /** Open Graph type: "article" for the blog, "website" for the dashboard. */
+  ogType?: "website" | "article";
 }
 
-const { title, description } = Astro.props;
+const { title, description, ogType = "website" } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -18,7 +20,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="color-scheme" content="light" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical.href} />
@@ -26,6 +28,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="canonical" href={canonical.href} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
+    <!-- Page-specific head content: structured data, article dates. -->
+    <slot name="head" />
     <!-- Light by default. Applies a saved choice before first paint, so dark never flashes light. -->
     <script is:inline>
       try {

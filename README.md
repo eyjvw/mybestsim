@@ -5,7 +5,7 @@ Le projet lit les fichiers CSV des fournisseurs eSIM et en tire un tableau de bo
 Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 
 - **Dashboard en ligne** : <https://mybestsim.sbonneau.xyz>
-- **Article SEO (partie 2)** : à venir
+- **Article SEO (partie 2)** : <https://mybestsim.sbonneau.xyz/blog/internet-croisiere-esim/>
 - **Code** : ce dépôt
 
 ![Vue d'ensemble du tableau de bord](docs/screenshots/accueil.png)
@@ -19,6 +19,7 @@ Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 - [Ajouter des données sans rebuild](#ajouter-des-données-sans-rebuild)
 - [Choix assumés](#choix-assumés)
 - [Ce que disent les données](#ce-que-disent-les-données)
+- [Partie 2 : l'article SEO](#partie-2--larticle-seo)
 - [Qualité et tests](#qualité-et-tests)
 - [CI/CD](#cicd)
 - [Lancer le projet](#lancer-le-projet)
@@ -52,6 +53,7 @@ par un script indépendant, voir [Qualité et tests](#qualité-et-tests).
 | `/offres` | toutes les offres (tri, recherche sans accents, export CSV) et simulateur de voyage |
 | `/qualite` | contrôle des imports, contrôles métier, choix assumés |
 | `/import` | aperçu d'un fichier fournisseur, puis publication |
+| `/blog/internet-croisiere-esim/` | partie 2 : l'article SEO « Internet en croisière : quelle eSIM choisir ? » |
 
 Les filtres (fournisseur, zone, destination, data, réseau, durée, recharge) vivent dans l'URL : un
 lien partagé rouvre la même vue, et la sélection suit le visiteur d'une page à l'autre.
@@ -172,14 +174,46 @@ chaque choix avec sa justification.
   médian 5G vaut 100,3 % du prix 4G.
 - Les meilleurs prix au Go par destination sont presque tous des offres 50 Go sur 7 jours.
 
+## Partie 2 : l'article SEO
+
+L'article « [Internet en croisière : quelle eSIM choisir ?](https://mybestsim.sbonneau.xyz/blog/internet-croisiere-esim/) »
+est une page du même site, rendue au build. La démarche complète est dans
+[docs/seo/ANALYSE.md](docs/seo/ANALYSE.md).
+
+- **La longueur vient de la concurrence.** Le sujet ne donne pas de nombre de mots. J'ai relevé les
+  pages qui sortent sur les requêtes visées, puis [`scripts/serp-measure.ts`](scripts/serp-measure.ts)
+  a mesuré leur HTML : sur 12 pages concurrentes, la médiane est de 2 140 mots et de 9 H2, la moitié
+  seulement a un tableau et moins de la moitié une FAQ. L'article fait environ 3 000 mots, avec
+  4 tableaux et une FAQ de 7 questions.
+- **MyBestSim avait déjà 4 articles sur la croisière.** Un cinquième aurait pu leur prendre leur
+  trafic. L'article est donc la page pilier du sujet : il répond à la question générale, puis renvoie
+  vers chaque page spécialisée et vers les comparateurs par destination.
+- **Ce qui le distingue** : les prix du Wi-Fi par compagnie, le coût du roaming maritime chez les
+  opérateurs français, la règle européenne citée à sa source, un conseil par itinéraire avec de vrais
+  prix, la croisière fluviale, une checklist et un schéma des zones de connexion.
+- **Les prix par itinéraire sont calculés depuis le catalogue** au moment du build, avec le même code
+  que le tableau de bord (`src/lib/cruise.ts`). Les autres chiffres sont sourcés et datés.
+- **Ton de la marque** : vouvoiement, gras sur l'essentiel, emojis dans les sous-titres et les
+  astuces, bouton « Comparer », comme sur la page Thaïlande de MyBestSim.
+- **SEO technique** : title et meta description à la bonne longueur, un seul H1, canonical, Open
+  Graph, JSON-LD `Article`, `FAQPage` et `BreadcrumbList`, suggestions d'images avec texte
+  alternatif.
+- **Choix assumé : pas d'indexation sur ce domaine.** L'article est fait pour mybestsim.com. L'indexer
+  ici créerait du contenu dupliqué le jour où MyBestSim le publie : le domaine de démonstration garde
+  son `noindex`.
+
+`checks/verify-article.mjs` vérifie à chaque build la longueur, la structure, les balises, la
+cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis les CSV.
+`checks/verify-article-links.mjs` vérifie que chaque lien externe répond.
+
 ## Qualité et tests
 
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 153 tests dans 29 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 58 tests dans 6 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
-| Oracles | 18 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 14 à chaque PR (`bun run checks`) |
+| Unitaire | `bun test`, 165 tests dans 31 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Navigateur | Playwright, 68 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Oracles | 20 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 15 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy ; processus non-root ; données conservées après redémarrage |
 
 Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
@@ -249,7 +283,7 @@ scripts/              validation, rapport d'import, CLI d'import, smoke test, ca
 e2e/                  tests Playwright
 docker/, Dockerfile   images web (Caddy) et ingest (Bun)
 deploy/               services Docker Compose et bloc Caddy du VPS
-docs/                 déploiement, feuille de route, captures
+docs/                 déploiement, feuille de route, captures, analyse SEO (docs/seo/)
 checks/               oracles indépendants : chiffres, service, CI (voir checks/README.md)
 ```
 
@@ -300,6 +334,13 @@ qui engagent le projet sont les miens :
 J'ai aussi relevé des défauts que l'agent n'avait pas vus, comme le curseur qui ne se changeait
 pas en main sur les boutons.
 
+**Pour l'article**, l'agent a fait la recherche (moteur de recherche web, lecture des pages
+concurrentes et des pages de MyBestSim), écrit l'outil de mesure et rédigé le texte. Il a cherché
+puis installé deux skills spécialisés, `seo-audit` et `ai-seo`, dont il a suivi la liste de
+contrôle d'une nouvelle page. Chaque chiffre a été relu contre sa source : quand deux sources se
+contredisaient, comme sur la distance réglementaire des réseaux de bord (2 ou 4 milles selon les
+textes), le chiffre a été retiré plutôt que choisi au hasard.
+
 ### Ce que l'IA a raté, et comment ça a été rattrapé
 
 L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en ligne.
@@ -323,6 +364,10 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | L'installation de Chromium sur le runner prenait 14 minutes, et le job e2e dépassait sa limite | premier passage de la CI, puis passage à l'image Playwright |
 | Un test axe était instable : il mesurait le contraste pendant la transition de thème | CI d'une PR Dependabot, sans rapport avec la montée de versions |
 | La configuration Dependabot laissait passer TypeScript 7 et une version de Playwright différente de l'image de la CI | CI rouge sur les premières PR Dependabot |
+| Dans l'article, le compilateur Astro collait des mots aux liens (« européenYour Europe ») | revue des captures, puis règle ajoutée à l'oracle de l'article |
+| Le canonical de l'article n'avait pas la même URL dans la page et dans le JSON-LD | oracle de l'article |
+| Deux sources de l'article refusaient les robots ou répondaient une fois sur deux | oracle des liens, sources remplacées par les communiqués officiels |
+| Quelques phrases de l'article affirmaient sans source (« la plupart des navires », un volume de data) | relecture phrase par phrase, reformulées ou retirées |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de
@@ -341,6 +386,5 @@ qu'on regarde vraiment. Chaque chiffre de ce README provient d'un script, pas d'
 - **Bac à sable de démonstration** : pour qu'un visiteur puisse publier sans jeton, un jeu
   `sandbox` remis à zéro chaque nuit est prévu.
 - **Couverture des forfaits régionaux** : c'est une hypothèse, faute de donnée dans les CSV.
-- **Partie 2 du test** : l'article SEO « Internet en croisière : quelle eSIM choisir ? » est à
-  venir, avec une analyse de la concurrence.
+- **Article SEO** : publié ici en démonstration, sans indexation ; sa place est sur mybestsim.com.
 - Le détail des étapes restantes est dans [docs/ROADMAP.md](docs/ROADMAP.md).

@@ -29,6 +29,11 @@ const pages = {
     not: ["kpis", "filters", "products"],
   },
   "/import": { file: "import/index.html", has: [], not: ["kpis"] },
+  "/blog/internet-croisiere-esim/": {
+    file: "blog/internet-croisiere-esim/index.html",
+    has: ["article", "faq", "itinerary-plans"],
+    not: ["kpis", "filters", "products"],
+  },
 };
 for (const [path, spec] of Object.entries(pages)) {
   const html = page(spec.file);
@@ -56,6 +61,6 @@ const kept = [...home.matchAll(/<a[^>]*href="([^"]+)"[^>]*data-keep-filters/g)].
 for (const p of ["/", "/analyse", "/offres"])
   if (!kept.includes(p)) fail(`nav link ${p} does not keep filters`);
 console.log(
-  "5 pages: home KPIs 1-6 + explore cards, sections on their own page, nav and current page right",
+  `${Object.keys(pages).length} pages: home KPIs 1-6 + explore cards, sections on their own page, nav and current page right`,
 );
 console.log("PAGES OK");
