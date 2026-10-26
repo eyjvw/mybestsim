@@ -51,6 +51,22 @@ test.describe("part 2 article", () => {
     await expect(first.locator("summary")).toHaveText(faq.mainEntity[0].name);
   });
 
+  test("on wide screens the side table of contents follows the reading", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(ARTICLE);
+    const side = page.locator("[data-toc-side]");
+    await expect(side).toBeVisible();
+    await page.evaluate(() => document.getElementById("roaming-en-mer")?.scrollIntoView());
+    await expect(side.locator('a[aria-current="location"]')).toHaveAttribute(
+      "href",
+      "#roaming-en-mer",
+    );
+    // Phones keep the inline table of contents instead.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(side).toBeHidden();
+    await expect(page.locator(".toc-inline")).toBeVisible();
+  });
+
   test("has no serious accessibility violation in the dark theme", async ({ page }) => {
     await page.goto(ARTICLE);
     await page.getByRole("button", { name: "Sombre" }).click();

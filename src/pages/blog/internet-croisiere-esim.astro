@@ -43,6 +43,7 @@ const pick = (id: string) => {
   return p;
 };
 const med = pick("mediterranee");
+const providers = new Set(products.map((p) => p.provider)).size;
 
 // Maritime roaming, out of bundle (JeChange, 10 October 2026, from the operators' price lists).
 const MARITIME = [
@@ -171,7 +172,7 @@ const TOC = [
       <span aria-current="page">Internet en croisière</span>
     </nav>
 
-    <article id="article" class="article mx-auto mt-4 max-w-3xl">
+    <article id="article" class="article mt-6">
       <header>
         <p class="kicker">Guide croisière · eSIM</p>
         <h1>Internet en croisière : quelle <em>eSIM</em> choisir ?</h1>
@@ -180,6 +181,26 @@ const TOC = [
         </p>
       </header>
 
+      <!-- Wide screens: table of contents and comparison card stay in view on the right. -->
+      <aside class="article-side" aria-label="Sur cette page">
+        <div class="article-side-inner">
+          <nav class="toc" aria-label="Sommaire" data-toc-side>
+            <p class="toc-title">Sur cette page</p>
+            <ol>
+              {TOC.map(([id, label]) => <li><a href={`#${id}`}>{label}</a></li>)}
+            </ol>
+          </nav>
+          <div class="side-card">
+            <p class="side-card-title">Comparez avant d'embarquer</p>
+            <p>Les forfaits eSIM de {formatInt(providers)} fournisseurs, escale par escale.</p>
+            <a class="cta-button" href={`${MBS}/`}>Comparer les eSIM →</a>
+            <a class="side-link" href="/offres">Voir les {formatInt(products.length)} offres du catalogue</a>
+          </div>
+        </div>
+      </aside>
+
+      <div class="article-body">
+      <div class="intro">
       <p class="lead">
         <strong>En croisière, une eSIM de voyage vous connecte dans les ports et près des côtes pour quelques euros,
         mais pas en pleine mer.</strong> Au large, seuls le Wi-Fi du navire et les eSIM maritimes fonctionnent, et le
@@ -197,6 +218,7 @@ const TOC = [
           <li><strong>Avant de partir</strong> : installez l'eSIM chez vous et coupez les données à l'étranger sur votre ligne principale.</li>
         </ul>
       </aside>
+      </div>
 
       <figure class="suggestion">
         <p class="suggestion-tag">Suggestion d'image</p>
@@ -204,7 +226,7 @@ const TOC = [
         <p class="suggestion-meta">Texte alternatif : « Passagère d'un bateau de croisière consultant son téléphone pendant une escale en Grèce » · fichier : <code>internet-croisiere-esim-escale-grece.webp</code> · 1600 × 900, WebP, moins de 200 Ko.</p>
       </figure>
 
-      <nav class="toc" aria-label="Sommaire">
+      <nav class="toc toc-inline" aria-label="Sommaire">
         <p class="toc-title">Sommaire</p>
         <ol>
           {TOC.map(([id, label]) => <li><a href={`#${id}`}>{label}</a></li>)}
@@ -547,7 +569,29 @@ const TOC = [
           à la date indiquée.
         </p>
       </section>
+      </div>
     </article>
+    <!-- Highlights the section being read in the side table of contents: the last heading
+         that has scrolled past the top third of the screen. -->
+    <script is:inline>
+      (() => {
+        const links = [...document.querySelectorAll("[data-toc-side] a")];
+        const heads = links.map((a) => document.getElementById(a.hash.slice(1)));
+        let frame = 0;
+        const mark = () => {
+          frame = 0;
+          let current = -1;
+          heads.forEach((h, i) => {
+            if (h && h.getBoundingClientRect().top < innerHeight / 3) current = i;
+          });
+          links.forEach((a, i) =>
+            i === current ? a.setAttribute("aria-current", "location") : a.removeAttribute("aria-current"),
+          );
+        };
+        addEventListener("scroll", () => (frame ||= requestAnimationFrame(mark)), { passive: true });
+        mark();
+      })();
+    </script>
     <SiteFooter />
   </div>
 </Layout>
