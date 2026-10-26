@@ -281,6 +281,11 @@ décisions et la relecture.
 5. **Des skills spécialisés.** `dataviz` valide la palette des graphiques par script (contraste,
    daltonisme) au lieu de la juger à l'œil. `watermarks-remover` passe sur les textes livrés.
    `caveman-commit` impose le format des commits.
+6. **Une mémoire hors du dépôt.** Le contexte de travail de l'agent (`CLAUDE.md`), l'état du
+   projet, les décisions et leur pourquoi, et le journal des sessions vivent dans mon vault
+   Obsidian. Un hook les injecte au démarrage de chaque session : le travail reprend d'une session
+   à l'autre sans tout réexpliquer. Le dépôt ne garde qu'un lien symbolique vers `CLAUDE.md`,
+   ignoré par git.
 
 ### Ce que l'IA a fait, ce que j'ai décidé
 

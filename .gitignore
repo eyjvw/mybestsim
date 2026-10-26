@@ -21,3 +21,6 @@ test-results/
 *.pdf
 *.zip
 .unlazy/
+
+# Claude Code context: the real file lives in the Obsidian vault (symlink)
+CLAUDE.md
