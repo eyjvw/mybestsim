@@ -1,0 +1,41 @@
+---
+import { SITE_NAV } from "../lib/page-props";
+import ThemeToggle from "./ThemeToggle.astro";
+
+interface Props {
+  /** Path of the current page, for aria-current. */
+  current: string;
+}
+
+const { current } = Astro.props;
+---
+
+<!-- Top bar in the mybestsim.com style: wordmark left, plain navigation below. -->
+<div class="flex items-center justify-between gap-4 pt-5 sm:pt-6">
+  <a href="/" data-keep-filters class="flex min-w-0 items-center gap-2.5" aria-label="Tableau de bord MyBestSim, accueil">
+    <span class="text-xl font-bold tracking-tight">My<span class="text-accent">Best</span>Sim</span>
+    <span
+      class="hidden rounded-full border border-accent/25 bg-accent-tint px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-accent uppercase sm:inline"
+    >
+      Données fournisseurs
+    </span>
+  </a>
+  <ThemeToggle />
+</div>
+<nav
+  aria-label="Pages"
+  class="-mx-4 mt-3 flex gap-x-5 overflow-x-auto border-b border-line px-4 text-sm font-medium whitespace-nowrap text-ink-2 sm:mx-0 sm:px-0"
+>
+  {
+    SITE_NAV.map((n) => (
+      <a
+        class="border-b-2 border-transparent pt-1 pb-2 hover:border-accent/60 hover:text-ink aria-[current=page]:border-accent aria-[current=page]:text-ink"
+        href={n.href}
+        aria-current={n.href === current ? "page" : undefined}
+        data-keep-filters={n.filters ? "" : undefined}
+      >
+        {n.label}
+      </a>
+    ))
+  }
+</nav>

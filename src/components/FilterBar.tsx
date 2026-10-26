@@ -1,11 +1,14 @@
-import { activeFilterCount, DEFAULT_FILTERS, type Filters } from "../lib/filters";
+import { useState } from "react";
+import {
+  activeFilterCount,
+  DEFAULT_FILTERS,
+  type FilterOptions,
+  type Filters,
+} from "../lib/filters";
 import { formatInt, formatTier } from "../lib/format";
 import { DATA_TIERS, VALIDITIES } from "../lib/stats";
 
-export interface FilterOptions {
-  providers: string[];
-  destinations: { code: string; name: string; region: boolean }[];
-}
+export type { FilterOptions };
 
 interface Props {
   filters: Filters;
@@ -16,12 +19,35 @@ interface Props {
   ready: boolean;
 }
 
+/** Copies the current URL, which carries the filters, so a view can be shared as is. */
+function ShareButton() {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard
+          ?.writeText(window.location.href)
+          .then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+          })
+          .catch(() => {});
+      }}
+      className="text-sm font-medium text-accent underline-offset-2 hover:underline"
+    >
+      <span aria-live="polite">{copied ? "Lien copié" : "Copier le lien"}</span>
+    </button>
+  );
+}
+
 interface SegmentedProps<T extends string | number> {
   label: string;
   value: T | "all";
   options: { value: T | "all"; label: string }[];
   onChange: (v: T | "all") => void;
   disabled: boolean;
+  className?: string;
 }
 
 function Segmented<T extends string | number>({
@@ -30,18 +56,22 @@ function Segmented<T extends string | number>({
   options,
   onChange,
   disabled,
+  className = "",
 }: SegmentedProps<T>) {
   return (
-    <fieldset className="min-w-0" disabled={disabled}>
-      <legend className="mb-1 text-xs text-ink-3">{label}</legend>
-      <div className="inline-flex rounded-lg border border-line bg-surface-2 p-0.5">
+    <fieldset className={`min-w-0 ${className}`} disabled={disabled}>
+      <legend className="mb-1 text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
+        {label}
+      </legend>
+      {/* Pill chips, like the filters of the mybestsim.com comparator. */}
+      <div className="flex max-w-full flex-wrap gap-1">
         {options.map((o) => (
           <button
             key={String(o.value)}
             type="button"
             aria-pressed={value === o.value}
             onClick={() => onChange(o.value)}
-            className="rounded-md px-2 py-1 text-sm whitespace-nowrap text-ink-2 sm:px-2.5 transition-colors hover:text-ink disabled:opacity-50 aria-pressed:bg-surface aria-pressed:font-medium aria-pressed:text-ink aria-pressed:shadow-sm"
+            className="h-8 rounded-full border border-accent/25 bg-accent-tint px-3 text-sm font-medium whitespace-nowrap text-accent transition-colors hover:border-accent/60 disabled:opacity-50 aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-on-accent"
           >
             {o.label}
           </button>
@@ -52,7 +82,7 @@ function Segmented<T extends string | number>({
 }
 
 const selectClass =
-  "h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-sm text-ink disabled:opacity-50";
+  "h-9 w-full rounded-[18px] border border-line bg-surface shadow-card px-3 text-sm text-ink shadow-card disabled:opacity-50";
 
 export function FilterBar({ filters, onChange, options, shown, total, ready }: Props) {
   const set = <K extends keyof Filters>(key: K, value: Filters[K]) => {
@@ -68,16 +98,67 @@ export function FilterBar({ filters, onChange, options, shown, total, ready }: P
     (d) => filters.zone === "all" || d.region === (filters.zone === "region"),
   );
   const active = activeFilterCount(filters);
+  const [open, setOpen] = useState(false);
+  const count = (
+    <p className="text-sm text-ink-2" aria-live="polite">
+      <strong className="font-semibold text-ink tabular-nums" data-shown={shown}>
+        {formatInt(shown)}
+      </strong>{" "}
+      carte{shown > 1 ? "s" : ""} sur {formatInt(total)}
+    </p>
+  );
+  const reset = (
+    <button
+      type="button"
+      onClick={() => onChange(DEFAULT_FILTERS)}
+      disabled={active === 0}
+      className="text-sm font-medium text-accent underline-offset-2 hover:underline disabled:cursor-default disabled:text-ink-3 disabled:no-underline"
+    >
+      Réinitialiser{active > 0 ? ` (${active})` : ""}
+    </button>
+  );
 
   return (
     <section
       id="filters"
       aria-label="Filtres"
-      className="z-20 -mx-4 border-b border-line bg-page px-4 py-3 sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:shadow-[0_8px_16px_-12px_rgb(0_0_0/0.15)]"
+      className="sticky top-0 z-20 -mx-4 border-b border-line bg-page/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 lg:py-3 2xl:-mx-14 2xl:px-14 lg:shadow-[0_8px_16px_-12px_rgb(0_0_0/0.15)]"
     >
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:flex lg:flex-wrap lg:items-end">
+      {/* Small screens: one compact row; the controls open on demand so KPIs stay in view. */}
+      <div className="flex items-center justify-between gap-3 lg:hidden">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="filter-controls"
+          onClick={() => setOpen((o) => !o)}
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-medium shadow-card"
+        >
+          Filtres
+          {active > 0 && (
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] text-on-accent tabular-nums">
+              {active}
+            </span>
+          )}
+          <span
+            aria-hidden="true"
+            className={`text-xs text-ink-3 transition-transform ${open ? "rotate-180" : ""}`}
+          >
+            ▾
+          </span>
+        </button>
+        <div className="flex items-center gap-3">
+          {count}
+          {active > 0 && reset}
+        </div>
+      </div>
+      <div
+        id="filter-controls"
+        className={`${open ? "grid" : "hidden"} mt-3 grid-cols-2 gap-3 md:grid-cols-4 lg:mt-0 lg:flex lg:flex-wrap lg:items-end`}
+      >
         <label className="block lg:w-44">
-          <span className="mb-1 block text-xs text-ink-3">Fournisseur</span>
+          <span className="mb-1 block text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
+            Fournisseur
+          </span>
           <select
             className={selectClass}
             disabled={!ready}
@@ -91,7 +172,9 @@ export function FilterBar({ filters, onChange, options, shown, total, ready }: P
           </select>
         </label>
         <label className="block lg:w-36">
-          <span className="mb-1 block text-xs text-ink-3">Zone</span>
+          <span className="mb-1 block text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
+            Zone
+          </span>
           <select
             className={selectClass}
             disabled={!ready}
@@ -104,7 +187,9 @@ export function FilterBar({ filters, onChange, options, shown, total, ready }: P
           </select>
         </label>
         <label className="block lg:w-48">
-          <span className="mb-1 block text-xs text-ink-3">Destination</span>
+          <span className="mb-1 block text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
+            Destination
+          </span>
           <select
             className={selectClass}
             disabled={!ready}
@@ -120,7 +205,9 @@ export function FilterBar({ filters, onChange, options, shown, total, ready }: P
           </select>
         </label>
         <label className="block lg:w-32">
-          <span className="mb-1 block text-xs text-ink-3">Data</span>
+          <span className="mb-1 block text-[11px] font-semibold tracking-wider text-ink-3 uppercase">
+            Data
+          </span>
           <select
             className={selectClass}
             disabled={!ready}
@@ -151,6 +238,7 @@ export function FilterBar({ filters, onChange, options, shown, total, ready }: P
         />
         <Segmented
           label="Durée"
+          className="max-sm:col-span-2 md:col-span-2"
           value={filters.validity}
           disabled={!ready}
           onChange={(v) => set("validity", v)}
@@ -171,19 +259,11 @@ export function FilterBar({ filters, onChange, options, shown, total, ready }: P
           ]}
         />
         <div className="col-span-2 flex items-center justify-between gap-3 md:col-span-4 lg:ml-auto lg:block lg:text-right">
-          <p className="text-sm text-ink-2" aria-live="polite">
-            <strong className="font-semibold text-ink tabular-nums">{formatInt(shown)}</strong>{" "}
-            carte
-            {shown > 1 ? "s" : ""} sur {formatInt(total)}
-          </p>
-          <button
-            type="button"
-            onClick={() => onChange(DEFAULT_FILTERS)}
-            disabled={active === 0}
-            className="text-sm font-medium text-s1 underline-offset-2 hover:underline disabled:cursor-default disabled:text-ink-3 disabled:no-underline"
-          >
-            Réinitialiser{active > 0 ? ` (${active})` : ""}
-          </button>
+          <div className="hidden lg:block">{count}</div>
+          <div className="flex items-center gap-4 lg:justify-end">
+            <ShareButton />
+            <span className="hidden lg:inline">{reset}</span>
+          </div>
         </div>
       </div>
       {!ready && <p className="mt-2 text-xs text-ink-3">Chargement du catalogue…</p>}

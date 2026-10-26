@@ -10,17 +10,17 @@ interface Props {
 
 export function KpiCard({ index, label, children, footnote }: Props) {
   return (
-    <article className="flex flex-col rounded-xl border border-line bg-surface p-4 sm:p-5">
+    <article className="flex min-w-0 flex-col rounded-[18px] border border-line bg-surface p-3.5 shadow-card sm:p-5">
       <header className="flex items-center gap-2">
         <span
-          className="grid size-5 shrink-0 place-items-center rounded-full bg-surface-2 text-[11px] font-semibold text-ink-2"
+          className="grid size-6 shrink-0 place-items-center rounded-full bg-accent-tint text-[11px] font-semibold text-accent"
           title={`Point ${index} du sujet`}
         >
           {index}
         </span>
         <h3 className="text-sm text-ink-2">{label}</h3>
       </header>
-      <div className="mt-3 text-[1.7rem] leading-tight font-semibold tracking-tight tabular-nums sm:text-3xl">
+      <div className="mt-2 text-[1.6rem] leading-tight font-bold tracking-tight sm:mt-3 sm:text-3xl">
         {children}
       </div>
       {footnote && <p className="mt-auto pt-2 text-xs leading-relaxed text-ink-3">{footnote}</p>}

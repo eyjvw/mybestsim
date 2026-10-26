@@ -1,0 +1,63 @@
+---
+// Three-way theme switch, light by default like mybestsim.com. The choice is stored per
+// browser; "Système" follows the OS. Layout's early script applies it before first paint.
+const options = [
+  { value: "light", label: "Clair" },
+  { value: "dark", label: "Sombre" },
+  { value: "system", label: "Système" },
+];
+---
+
+<div
+  role="group"
+  aria-label="Thème"
+  data-theme-toggle
+  class="inline-flex gap-0.5 rounded-full border border-line bg-surface p-0.5 text-xs shadow-card"
+>
+  {
+    options.map((o) => (
+      <button
+        type="button"
+        data-theme-value={o.value}
+        aria-pressed={o.value === "light" ? "true" : "false"}
+        class="rounded-full px-2.5 py-1 font-medium text-ink-2 transition-colors hover:text-ink aria-pressed:bg-accent aria-pressed:text-on-accent"
+      >
+        {o.label}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const KEY = "mbs-theme";
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  const read = () => {
+    try {
+      return localStorage.getItem(KEY) ?? "light";
+    } catch {
+      return "light";
+    }
+  };
+  const apply = (value: string) => {
+    const dark = value === "dark" || (value === "system" && media.matches);
+    if (dark) document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+    for (const b of document.querySelectorAll<HTMLButtonElement>("[data-theme-value]")) {
+      b.setAttribute("aria-pressed", String(b.dataset.themeValue === value));
+    }
+  };
+  apply(read());
+  media.addEventListener("change", () => apply(read()));
+  for (const b of document.querySelectorAll<HTMLButtonElement>("[data-theme-value]")) {
+    b.addEventListener("click", () => {
+      const value = b.dataset.themeValue ?? "light";
+      try {
+        if (value === "light") localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, value);
+      } catch {
+        // Storage blocked (private mode): the theme still applies for this page view.
+      }
+      apply(value);
+    });
+  }
+</script>
