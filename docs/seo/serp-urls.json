@@ -1,0 +1,27 @@
+{
+  "note": "Pages ranking for the target queries, collected on 2026-10-26 with a web search (US index; no paid SEO tool). `own` marks MyBestSim's existing pages, measured apart: they are what the new article must link to, not compete with.",
+  "queries": [
+    "internet en croisière eSIM quelle eSIM choisir",
+    "eSIM croisière couverture maritime internet bateau",
+    "internet en croisière wifi forfait prix",
+    "internet croisière comment avoir internet sur un bateau de croisière"
+  ],
+  "pages": [
+    { "url": "https://esim.holafly.com/fr/internet-mobile/internet-sur-bateau-de-croisiere/" },
+    { "url": "https://simology.io/fr/blog/internet-mobile-croisiere-esim-vs-wifi-bateau" },
+    { "url": "https://esim.redbullmobile.com/fr/blog/esim-pour-les-bateaux-de-croisiere-internet-abordable-en-mer/" },
+    { "url": "https://roamless.com/blog/esim-for-cruise-ships" },
+    { "url": "https://www.gigsky.com/blog/what-to-know-about-cruise-ship-internet-before-you-cruise" },
+    { "url": "https://francoischarron.com/gadgets-techno/mobile-tablettes/obtenez-un-forfait-internet-en-croisiere-moins-cher-que-sur-le-bateau/tyw4plx5fj/" },
+    { "url": "https://www.voyages-exception.fr/actualites/1288-internet-en-croisiere-combien-ca-coute" },
+    { "url": "https://www.gomoworld.com/en/blog/internet-croisiere" },
+    { "url": "https://www.planete-croisiere.com/internet-en-croisere" },
+    { "url": "https://www.participez.com/wifi-croisiere/" },
+    { "url": "https://www.tourisme-solidaire.org/wifi-en-bateau-de-croisiere-quelles-solutions-pour-rester-connecte/" },
+    { "url": "https://www.croisieres.fr/blog-voyage/msc-croisieres-forfaits-wifi-internet/" },
+    { "url": "https://mybestsim.com/fr/esim-pour-la-croisiere-et-la-terre/", "own": true },
+    { "url": "https://mybestsim.com/fr/meilleure-esim-pour-les-navires-de-croisiere-2026-ce-qui-fonctionne/", "own": true },
+    { "url": "https://mybestsim.com/fr/meilleure-esim-pour-croisiere-dans-les-caraibes-que-choisir-en-2026/", "own": true },
+    { "url": "https://mybestsim.com/fr/frais-de-roaming-en-croisiere-dans-lue-guide-2026/", "own": true }
+  ]
+}

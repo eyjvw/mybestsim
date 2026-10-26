@@ -15,7 +15,7 @@ test.describe("responsive layout", () => {
       expect(await horizontalOverflow(page)).toBe(0);
     });
 
-    for (const path of ["/analyse", "/offres", "/qualite"]) {
+    for (const path of ["/analyse", "/offres", "/qualite", "/blog/internet-croisiere-esim/"]) {
       test(`no horizontal overflow on ${path} at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(path);

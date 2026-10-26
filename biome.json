@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/.unlazy", "!**/dist", "!**/.astro", "!**/*.md"]
+    "includes": ["**", "!**/.unlazy", "!**/dist", "!**/.astro", "!**/*.md", "!docs/seo/*.json"]
   },
   "formatter": {
     "enabled": true,

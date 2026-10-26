@@ -16,6 +16,13 @@ describe("dashboardProps", () => {
     const hrefs = SITE_NAV.map((n) => n.href);
     expect(hrefs[0]).toBe("/");
     expect(new Set(hrefs).size).toBe(hrefs.length);
-    expect(hrefs).toEqual(["/", "/analyse", "/offres", "/qualite", "/import"]);
+    expect(hrefs).toEqual([
+      "/",
+      "/analyse",
+      "/offres",
+      "/qualite",
+      "/import",
+      "/blog/internet-croisiere-esim/",
+    ]);
   });
 });

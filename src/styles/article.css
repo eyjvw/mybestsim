@@ -1,0 +1,322 @@
+/* Blog article: readable measure, MyBestSim look (Poppins, blue accent, white cards). Colours come
+   from the theme tokens of global.css, so the article follows the light and dark themes. */
+.article {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+.article > * + * {
+  margin-top: 1.1rem;
+}
+.article .kicker {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.article h1 {
+  margin-top: 0.4rem;
+  font-size: clamp(2rem, 1.2rem + 3.2vw, 3.1rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.article h1 em {
+  color: var(--accent);
+}
+.article .byline {
+  margin-top: 0.8rem;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+.article .lead {
+  margin-top: 1.6rem;
+  font-size: 1.15rem;
+  color: var(--ink-2);
+}
+.article .lead strong {
+  color: var(--ink);
+}
+.article h2 {
+  margin-top: 2.8rem;
+  scroll-margin-top: 1.5rem;
+  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 1.85rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.article h3 {
+  margin-top: 1.9rem;
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.article a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.article a:hover {
+  text-decoration-thickness: 2px;
+}
+.article ul,
+.article ol {
+  padding-left: 1.3rem;
+}
+.article ul {
+  list-style: disc;
+}
+.article ol {
+  list-style: decimal;
+}
+.article li + li {
+  margin-top: 0.45rem;
+}
+.article code {
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+.article .small {
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+
+.article .essentials,
+.article .toc,
+.article .proscons > div,
+.article .cta,
+.article .faq details {
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+.article .essentials {
+  padding: 1.1rem 1.3rem;
+  border-left: 4px solid var(--accent);
+}
+.article .essentials-title,
+.article .toc-title,
+.article .proscons-title,
+.article .cta-title {
+  font-weight: 700;
+}
+.article .toc {
+  padding: 1rem 1.3rem;
+  background: var(--surface-2);
+  box-shadow: none;
+}
+.article .toc ol {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+.article .tip {
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.9rem;
+  background: var(--accent-tint);
+}
+
+.article .table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+.article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.article caption {
+  padding: 0.8rem 1rem 0.2rem;
+  text-align: left;
+  font-weight: 600;
+}
+.article th,
+.article td {
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.article thead th {
+  border-top: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.article tbody th {
+  font-weight: 600;
+}
+
+.article .zones {
+  margin-top: 1.4rem;
+}
+.article .zones-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+}
+.article .zone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+.article .zone {
+  border-top: 4px solid var(--accent);
+}
+/* Deeper blue as the ship leaves the coast; text stays in full ink for contrast (WCAG AA). */
+.article .zone-land {
+  background: var(--surface);
+  border-top-color: color-mix(in srgb, var(--accent) 35%, var(--surface));
+}
+.article .zone-near {
+  background: var(--accent-tint);
+  border-top-color: color-mix(in srgb, var(--accent) 65%, var(--surface));
+}
+.article .zone-sea {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+.article .zone-icon {
+  font-size: 1.4rem;
+}
+.article .zone-name {
+  font-weight: 700;
+}
+.article .zone-use {
+  color: var(--ink);
+}
+.article .zones figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+@media (max-width: 560px) {
+  .article .zones-band {
+    grid-template-columns: 1fr;
+  }
+}
+
+.article .suggestion {
+  padding: 1rem 1.2rem;
+  border: 2px dashed var(--rule);
+  border-radius: 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.article .suggestion > * + * {
+  margin-top: 0.35rem;
+}
+.article .suggestion-tag {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #0f172a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.article .suggestion-meta {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+
+.article .proscons {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .article .proscons {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.article .proscons > div {
+  padding: 1rem 1.2rem;
+}
+.article .proscons ul {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.article .steps li::marker {
+  font-weight: 700;
+  color: var(--accent);
+}
+.article .profiles {
+  list-style: none;
+  padding-left: 0;
+}
+.article .profiles li {
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent);
+}
+
+.article .faq {
+  display: grid;
+  gap: 0.6rem;
+}
+.article .faq details {
+  padding: 0.85rem 1.1rem;
+  box-shadow: none;
+}
+.article .faq summary {
+  font-weight: 600;
+}
+.article .faq details p {
+  margin-top: 0.5rem;
+  color: var(--ink-2);
+}
+
+.article .cta {
+  margin-top: 2.8rem;
+  padding: 1.4rem 1.5rem;
+  text-align: center;
+  background: var(--surface-2);
+}
+.article .cta > * + * {
+  margin-top: 0.6rem;
+}
+.article .cta-title {
+  font-size: 1.3rem;
+}
+.article .cta .cta-button {
+  display: inline-block;
+  padding: 0.75rem 1.4rem;
+  border-radius: 999px;
+  background: var(--cta);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.article .cta .cta-button:hover {
+  filter: brightness(0.95);
+}
+
+.article .sources {
+  margin-top: 2.8rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.article .sources h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+.article .sources ul {
+  margin-top: 0.6rem;
+}
+.article .sources > .small {
+  margin-top: 0.9rem;
+}

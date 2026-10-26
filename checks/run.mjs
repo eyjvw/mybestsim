@@ -11,6 +11,7 @@ const CI = [
   ["verify-kpis.mjs", "the six brief KPIs in stats.json and in the home page HTML"],
   ["verify-business.mjs", "savings, wins, 5G premium, unbeaten offers, audit and histogram"],
   ["verify-pages.mjs", "each section on its page, navigation and current page"],
+  ["verify-article.mjs", "part 2 article: length and structure from the analysis, SEO, prices"],
   ["verify-brand.mjs", "MyBestSim tokens and self-hosted fonts in the built CSS"],
   ["verify-diff.mjs", "the import report against an independent SKU diff"],
   ["verify-ingest.mjs", "publish through the real server, refusals change nothing"],
@@ -27,6 +28,7 @@ const LOCAL = [
   ["verify-palette.mjs", "chart colours through the dataviz palette validator"],
   ["verify-caddy.mjs", "the image Caddyfile with a real Caddy 2 binary"],
   ["verify-overflow-control.mjs", "negative control: the overflow test fails on the old layout"],
+  ["verify-article-links.mjs", "every external link of the article answers (network)"],
 ];
 const LIVE = [["verify-live.mjs", "the deployed site, its data, headers and neighbours"]];
 

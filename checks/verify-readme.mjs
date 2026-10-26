@@ -90,6 +90,19 @@ if (!ciList) fail("checks/run.mjs: CI list not found");
 const ciCount = (ciList.match(/^\s+\["verify-/gm) ?? []).length;
 must("ci oracles", `la CI en lance ${ciCount} à chaque PR`);
 
+// Part 2: the competitor figures from the measured analysis, the article's from its built page.
+const serp = JSON.parse(readFileSync("docs/seo/serp.json", "utf8")).summary;
+must("serp pages", `sur ${serp.competitors} pages concurrentes`);
+must("serp median", `la médiane est de ${fr(serp.words.median)} mots et de ${serp.h2.median} H2`);
+const articleHtml = readFileSync("dist/blog/internet-croisiere-esim/index.html", "utf8");
+const articleBody =
+  articleHtml.match(/<article id="article"[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? "";
+const articleTables = (articleBody.match(/<table/g) ?? []).length;
+const articleFaq = (articleBody.match(/<details>/g) ?? []).length;
+must("article tables", `${articleTables} tableaux et une FAQ de ${articleFaq} questions`);
+const mbsCruise = JSON.parse(readFileSync("docs/seo/serp.json", "utf8")).pages.filter((p) => p.own);
+must("own pages", `MyBestSim avait déjà ${mbsCruise.length} articles sur la croisière`);
+
 console.log(
   `${links.length} links and ${images.length} images resolve; ${anchors.size} headings; figures, ${u[1]} unit and ${e[1]} e2e tests, ${oracles.length} oracles match`,
 );

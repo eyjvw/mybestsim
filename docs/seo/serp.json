@@ -1,0 +1,791 @@
+{
+  "measuredAt": "2026-10-26T21:22:48.023Z",
+  "summary": {
+    "competitors": 12,
+    "words": {
+      "median": 2140,
+      "max": 3800,
+      "min": 616
+    },
+    "h2": {
+      "median": 9
+    },
+    "withTable": 50,
+    "withFaq": 42,
+    "withImages": 100,
+    "withArticleSchema": 83
+  },
+  "pages": [
+    {
+      "url": "https://esim.holafly.com/fr/internet-mobile/internet-sur-bateau-de-croisiere/",
+      "status": 200,
+      "metrics": {
+        "title": "Comment avoir Internet sur un bateau de croisière en 2026 ? - Holafly",
+        "description": "Découvrez comment avoir Internet sur un bateau de croisière : le WiFi de bord, les prix de MSC, Costa, le roaming maritime et l&#039;alternative eSIM.",
+        "lang": "fr-FR",
+        "h1": [],
+        "h2": [
+          "Avoir Internet en mer : est-ce vraiment possible ?",
+          "Comparatif des solutions pour avoir Internet sur un bateau de croisière",
+          "Les forfaits WiFi sur les bateaux de croisière",
+          "L’eSIM internationale pour avoir Internet en croisière",
+          "Comparaison : eSIM internationale vs forfait de croisière",
+          "Guide pratique : comment installer votre eSIM avant le départ ?",
+          "Les alternatives pour rester connecté pendant une croisière",
+          "3 astuces pour économiser vos données à bord",
+          "FAQ : questions fréquentes sur la connexion en mer",
+          "Plans that may interest you",
+          "Jeanne Soppo"
+        ],
+        "h3": [
+          "Tarif des forfaits Internet de MSC",
+          "Tarif des forfaits Internet de Costa Croisière",
+          "Tarif des forfaits Internet de Royal Caribbean",
+          "Le routeur 4G/5G",
+          "Le roaming de votre forfait habituel",
+          "Le WiFi gratuit à bord",
+          "Content writer"
+        ],
+        "words": 2263,
+        "root": "article",
+        "tables": 2,
+        "images": 5,
+        "faq": true,
+        "schemaTypes": [
+          "Article",
+          "BreadcrumbList",
+          "CommentAction",
+          "EntryPoint",
+          "ImageObject",
+          "ListItem",
+          "Organization",
+          "Person",
+          "PropertyValueSpecification",
+          "ReadAction",
+          "SearchAction",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-04-27T15:59:48+00:00",
+        "modified": "2026-04-27T16:15:52+00:00"
+      }
+    },
+    {
+      "url": "https://simology.io/fr/blog/internet-mobile-croisiere-esim-vs-wifi-bateau",
+      "status": 200,
+      "metrics": {
+        "title": "Internet en Croisière 2026 : eSIM vs WiFi Bateau Guide",
+        "description": "Découvrez comment rester connecté en croisière sans exploser votre budget. Comparaison complète entre eSIM et WiFi bateau, tarifs et conseils pratiques.",
+        "lang": "fr",
+        "h1": [
+          "Internet en Croisière : eSIM vs WiFi du Bateau, le Guide Complet"
+        ],
+        "h2": [
+          "Le grand dilemme du voyageur en croisière : WiFi du bord ou eSIM ?",
+          "Combien coûte vraiment le WiFi à bord d&#x27;un bateau de croisière ?",
+          "Qu&#x27;est-ce qu&#x27;une eSIM et comment fonctionne-t-elle en croisière ?",
+          "eSIM vs WiFi du bateau : comparaison complète",
+          "Pourquoi votre forfait roaming français est-il à éviter en croisière ?",
+          "Quelles destinations de croisière sont les mieux couvertes par une eSIM ?",
+          "Comment choisir et activer une eSIM avant votre croisière ?",
+          "Quelle stratégie de connectivité adopter selon votre profil ?",
+          "Les erreurs à absolument éviter en croisière",
+          "L&#x27;eSIM en croisière : ce que disent les chiffres en 2026",
+          "FAQ",
+          "Conclusion : la stratégie gagnante pour votre prochaine croisière",
+          "Lire d&#x27;autres articles"
+        ],
+        "h3": [
+          "Les tarifs des grandes compagnies en 2026",
+          "Pourquoi le WiFi du bateau est-il si cher et souvent décevant ?",
+          "Quand l&#x27;eSIM fonctionne-t-elle en croisière ?",
+          "Quand l&#x27;eSIM ne fonctionne-t-elle pas ?",
+          "Méditerranée",
+          "Caraïbes",
+          "Norvège et fjords nordiques",
+          "Asie du Sud-Est",
+          "Étape 1 : Vérifiez la compatibilité de votre téléphone",
+          "Étape 2 : Choisissez le bon type de forfait",
+          "Étape 3 : Activez avant d&#x27;embarquer",
+          "Étape 4 : Gérez les deux lignes intelligemment",
+          "Le voyageur déconnecté (vacances vraiment vacances)",
+          "Le voyageur connecté occasionnel",
+          "Le nomade numérique / voyageur d&#x27;affaires",
+          "Erreur n°1 : Oublier d&#x27;activer le mode avion",
+          "Erreur n°2 : Acheter le WiFi du bord à la dernière minute",
+          "Erreur n°3 : Ne pas tester l&#x27;eSIM avant d&#x27;embarquer",
+          "Erreur n°4 : Sous-estimer sa consommation de données",
+          "Erreur n°5 : Confondre &quot;couverture&quot; et &quot;signal utilisable&quot;",
+          "Le WiFi du bateau fonctionne-t-il vraiment 24h/24 en pleine mer ?",
+          "Mon eSIM peut-elle se connecter aux réseaux maritimes et générer des frais énormes ?",
+          "Combien de données me faut-il pour une croisière de 10 jours avec escales quotidiennes ?",
+          "Puis-je utiliser mon eSIM comme point d&#x27;accès WiFi pour d&#x27;autres appareils (tablette, ordinateur) ?",
+          "Dois-je acheter une eSIM différente pour chaque pays d&#x27;escale ?",
+          "Mon téléphone peut-il utiliser l&#x27;eSIM et ma SIM française en même temps en croisière ?",
+          "Quelles compagnies de croisière proposent le meilleur WiFi en 2026 ?",
+          "Est-il possible d&#x27;activer une eSIM depuis le WiFi du bateau si je l&#x27;ai oublié avant d&#x27;embarquer ?",
+          "Partager l&#x27;article",
+          "eSIM Allemagne : guide complet pour voyager connecté",
+          "eSIM France : tout savoir avant de partir à l&#x27;étranger",
+          "Meilleures destinations de vacances été 2026 + eSIM",
+          "Opérateur roaming Québec : comparatif complet 2026",
+          "Acheter une eSIM France en ligne : guide complet 2026",
+          "Où partir en août 2026 : les meilleures destinations"
+        ],
+        "words": 2961,
+        "root": "article",
+        "tables": 2,
+        "images": 6,
+        "faq": true,
+        "schemaTypes": [
+          "BlogPosting",
+          "ImageObject",
+          "Organization",
+          "PostalAddress",
+          "SpeakableSpecification",
+          "Thing",
+          "WebPage"
+        ],
+        "published": "2026-09-14T00:37:10.153Z",
+        "modified": "2026-09-14T00:37:10.153Z"
+      }
+    },
+    {
+      "url": "https://esim.redbullmobile.com/fr/blog/esim-pour-les-bateaux-de-croisiere-internet-abordable-en-mer/",
+      "status": 200,
+      "metrics": {
+        "title": "eSIM pour les bateaux de croisière - Internet abordable en mer - Red Bull MOBILE eSIM",
+        "description": "Obtenir un Internet abordable sur les bateaux de croisière - Reste connecté en mer avec des coûts prévisibles et sans choc de facture d&#039;itinérance.",
+        "lang": "fr-FR",
+        "h1": [
+          "eSIM pour les bateaux de croisière &#8211; Internet abordable en mer"
+        ],
+        "h2": [
+          "Pourquoi l'Internet sur les bateaux de croisière est-il souvent coûteux ?",
+          "Qu'est-ce qu'un eSIM pour bateau de croisière ?",
+          "Combien coûte Internet sur un bateau de croisière ?",
+          "Red Bull MOBILE eSIM",
+          "Connectivité en mer et dans les ports de croisière",
+          "Comment utiliser la carte eSIM Red Bull MOBILE lors d'une croisière ?",
+          "Pourquoi choisir la carte eSIM de Red Bull MOBILE pour ta croisière ?",
+          "Share:",
+          "Related Blog Posts",
+          "MSC Croisières &#8211; World Europa",
+          "Changements de tarifs Red Bull MOBILE eSIM : dépense moins, économise plus",
+          "Tarifs du Wi-Fi à bord des bateaux de croisière en 2027",
+          "Télécharge l’application de données Red Bull MOBILE maintenant"
+        ],
+        "h3": [
+          "Alternatives typiques"
+        ],
+        "words": 681,
+        "root": "body",
+        "tables": 0,
+        "images": 10,
+        "faq": false,
+        "schemaTypes": [
+          "Article",
+          "BreadcrumbList",
+          "EntryPoint",
+          "ImageObject",
+          "ListItem",
+          "Person",
+          "PropertyValueSpecification",
+          "ReadAction",
+          "SearchAction",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-01-23T09:25:53+00:00",
+        "modified": "2026-01-23T09:55:17+00:00"
+      }
+    },
+    {
+      "url": "https://roamless.com/blog/esim-for-cruise-ships",
+      "status": 200,
+      "metrics": {
+        "title": "Do eSIMs Work on Cruise Ships?",
+        "description": "Do eSIMs work on cruise ships? Discover how eSIMs work for cruise travel and how an eSIM provides mobile internet connection during your trip.",
+        "lang": "en",
+        "h1": [
+          "Do eSIMs Work on Cruise Ships?"
+        ],
+        "h2": [
+          "Does eSIM Work on Cruise Ships?",
+          "Does International Roaming Work on Cruise Ships?",
+          "How to Use an eSIM on a Cruise?",
+          "How to Choose the Best eSIM for a Cruise?",
+          "What is the Best eSIM for Cruises?",
+          "SIM Card vs eSIM on a Cruise: What’s the Difference?",
+          "How Does Your Cruise Route Affect eSIM Coverage?",
+          "Is Cruise Ship Wi-Fi Reliable?",
+          "Which Cruise Regions are Best for eSIM Use?",
+          "FAQ",
+          "Single Global eSIM™. 200+ destinations"
+        ],
+        "h3": [
+          "Get your Single Global eSIM™ now"
+        ],
+        "words": 2017,
+        "root": "article",
+        "tables": 1,
+        "images": 1,
+        "faq": true,
+        "schemaTypes": [
+          "Article",
+          "ImageObject",
+          "Organization",
+          "WebSite"
+        ],
+        "published": "2025-05-16",
+        "modified": "2026-09-17T13:13:02.728Z"
+      }
+    },
+    {
+      "url": "https://www.gigsky.com/blog/what-to-know-about-cruise-ship-internet-before-you-cruise",
+      "status": 200,
+      "metrics": {
+        "title": "Stay Connected at Sea: Cruise Internet Tips 2025 – GigSky",
+        "description": "Stay connected on your cruise with tips on affordable Wi-Fi and eSIM solutions. Discover seamless internet access at sea and on land today!",
+        "lang": "en",
+        "h1": [],
+        "h2": [
+          "Exploring Cruise Internet Options",
+          "Tips for Staying Connected at Sea",
+          "Comparing Cruise WiFi to GigSky eSIMs",
+          "Making the Most of Your Cruise Connectivity",
+          "Related topics",
+          "Related articles"
+        ],
+        "h3": [
+          "Cruise Ship WiFi Plans",
+          "Roaming Plans with Your Home Carrier",
+          "GigSky eSIM Plans"
+        ],
+        "words": 1250,
+        "root": "article",
+        "tables": 1,
+        "images": 2,
+        "faq": false,
+        "schemaTypes": [
+          "BlogPosting",
+          "BreadcrumbList",
+          "ListItem",
+          "Organization",
+          "Person"
+        ],
+        "published": "2025-06-02T00:00:00.000Z",
+        "modified": "2026-09-17T10:06:52Z"
+      }
+    },
+    {
+      "url": "https://francoischarron.com/gadgets-techno/mobile-tablettes/obtenez-un-forfait-internet-en-croisiere-moins-cher-que-sur-le-bateau/tyw4plx5fj/",
+      "status": 200,
+      "metrics": {
+        "title": "Obtenez un forfait internet en croisière moins cher que sur le bateau!",
+        "description": "Ne payez pas les prix de débile des bateaux de croisière pour avoir de l&#039;internet! Saily vend des forfaits eSIM disponibles sur les croisières.",
+        "lang": "fr",
+        "h1": [],
+        "h2": [
+          "L'offre de Saily pour rester connect&eacute; en croisi&egrave;re",
+          "Saily: Une eSIM polyvalente et s&eacute;curis&eacute;e",
+          "Comment puis-je avoir acc&egrave;s &agrave; Internet sur ma croisi&egrave;re?",
+          "Découvrez la valeur de vos cartes de hockey rapidement avec Mintora",
+          "Comment les fraudeurs connaissent-ils vos informations?",
+          "Faut pas oublier ses clés",
+          "Les meilleurs rabais sur le Web de francoischarron.com"
+        ],
+        "h3": [],
+        "words": 616,
+        "root": "article",
+        "tables": 0,
+        "images": 12,
+        "faq": false,
+        "schemaTypes": [
+          "Article",
+          "BreadcrumbList",
+          "ImageObject",
+          "ListItem",
+          "Organization",
+          "Person",
+          "SearchAction",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-07-23T11:01:00-04:00",
+        "modified": "2026-07-23T11:01:00-04:00"
+      }
+    },
+    {
+      "url": "https://www.voyages-exception.fr/actualites/1288-internet-en-croisiere-combien-ca-coute",
+      "status": 200,
+      "metrics": {
+        "title": "Internet en croisière: prix des compagnies et pièges à éviter",
+        "description": "Combien vous coûteront vos connexions Internet lors de votre prochaine croisière ? Éléments de réponse avec notre enquête réactualisée.",
+        "lang": "fr",
+        "h1": [
+          "Internet en croisière: le guide ultime"
+        ],
+        "h2": [
+          "Comment &ccedil;a marche ?",
+          "Les Prix Internet chez Costa et MSC",
+          "Et sur les autres compagnies ?",
+          "Le&nbsp;luxe est aussi 2.0 !",
+          "Et avec votre propre op&eacute;rateur ?",
+          "attention &agrave;&nbsp;Maritime Communications !",
+          "WiFi gratuit : oui, mais pas pour tout !&nbsp;",
+          "10 r&eacute;gles d'or &agrave; suivre"
+        ],
+        "h3": [],
+        "words": 3151,
+        "root": "article",
+        "tables": 0,
+        "images": 6,
+        "faq": false,
+        "schemaTypes": [
+          "BreadcrumbList",
+          "GeoCoordinates",
+          "ListItem",
+          "OpeningHoursSpecification",
+          "Organization",
+          "PostalAddress"
+        ],
+        "published": "2017-04-10 15:46:00.000000",
+        "modified": "2025-11-24 22:38:53.000000"
+      }
+    },
+    {
+      "url": "https://www.gomoworld.com/en/blog/internet-croisiere",
+      "status": 200,
+      "metrics": {
+        "title": "Wi-Fi Cruise vs eSIM: What to Choose for Your Cruise?",
+        "description": "Cruise Wi-Fi costs up to €39.99/day. Discover how to use a GoMoWorld eSIM during your port calls to save money.",
+        "lang": "en",
+        "h1": [
+          "Cruise Internet: Onboard Wi-Fi or eSIM During Port Calls?",
+          "Cruise Internet: Onboard Wi-Fi or eSIM During Port Calls?"
+        ],
+        "h2": [
+          "Onboard Cruise Wi-Fi: Prices and Limits",
+          "The Real Question: Do You Need Internet at Sea?",
+          "The Solution: GoMoWorld eSIM for Port Calls",
+          "Comparison Table: Onboard Wi-Fi vs eSIM During Port Calls",
+          "Practical Guide: Planning Your Connection Port by Port",
+          "Related guides",
+          "FAQ",
+          "What is an eSIM?",
+          "We’ll Explain Everything."
+        ],
+        "h3": [
+          "The Hidden Costs of Ship Wi-Fi",
+          "The Maritime Roaming Trap",
+          "Transparent Pricing",
+          "App-Only Installation",
+          "Manual Activation",
+          "Analyzing the Data",
+          "Step 1: Preparation at Home",
+          "Step 2: Boarding the Ship",
+          "Step 3: Arriving at the Port",
+          "Step 4: Leaving the Port",
+          "Managing Multiple Countries",
+          "Working from a Cruise Ship",
+          "Troubleshooting Port Connections",
+          "Keeping Your Home Number Active",
+          "How to get internet on a cruise?",
+          "Do you get cell signal on a cruise ship?",
+          "What is the best eSIM for cruises?",
+          "How to use your phone on a cruise?",
+          "Cost of Living in Thailand: Connectivity Guide",
+          "Difference Layover Stopover: Complete Connectivity Guide",
+          "Layover vs Customs Stopover: Quick Internet Solutions",
+          "Port Call China: How to Get Internet in a Few Hours",
+          "Hear from our Happy Travelers",
+          "A simple, digital solution for staying connected wherever you Go.",
+          "Still thinking about it?"
+        ],
+        "words": 2492,
+        "root": "main",
+        "tables": 1,
+        "images": 45,
+        "faq": true,
+        "schemaTypes": [
+          "AggregateRating",
+          "BlogPosting",
+          "BreadcrumbList",
+          "ContactPoint",
+          "ListItem",
+          "Organization",
+          "Person",
+          "WebPage"
+        ],
+        "published": "2026-05-26T00:00:00.000Z",
+        "modified": "2026-05-26T00:00:00.000Z"
+      }
+    },
+    {
+      "url": "https://www.planete-croisiere.com/internet-en-croisere",
+      "status": 200,
+      "metrics": {
+        "title": "Internet en croisière : tout ce que vous devez savoir",
+        "description": "Découvrez comment utiliser Internet en croisière, choisir votre forfait Wi-Fi et éviter les frais de téléphonie maritime pendant votre voyage.",
+        "lang": "fr",
+        "h1": [
+          "Internet en croisière : Wi-Fi, forfaits et téléphonie à bord"
+        ],
+        "h2": [
+          "Comment fonctionne Internet en croisière ?",
+          "Quels forfaits Internet choisir à bord ?",
+          "Comment les offres Internet varient-elles selon les compagnies ?",
+          "Pourquoi faut-il être vigilant avec la téléphonie en mer ?",
+          "Comment rester connecté pendant les escales ?",
+          "Comment limiter le coût des forfaits Internet et téléphonie ?",
+          "Peut-on utiliser WhatsApp ou passer des appels vidéo à bord ?",
+          "Bien choisir sa connexion avant le départ",
+          "L&#39;avis de nos clients : ils ont adoré leur expérience avec nous"
+        ],
+        "h3": [],
+        "words": 3625,
+        "root": "body",
+        "tables": 0,
+        "images": 116,
+        "faq": true,
+        "schemaTypes": [
+          "AggregateRating",
+          "Answer",
+          "BreadcrumbList",
+          "FAQPage",
+          "ListItem",
+          "Offer",
+          "Product",
+          "Question"
+        ],
+        "published": null,
+        "modified": null
+      }
+    },
+    {
+      "url": "https://www.participez.com/wifi-croisiere/",
+      "status": 200,
+      "metrics": {
+        "title": "WiFi sur un bateau : solutions, prix et astuces",
+        "description": "Comment avoir du WiFi sur un bateau ? 4G, satellite, Starlink, forfaits croisière : toutes les solutions comparées avec prix, portées et conseils d&#039;installation.",
+        "lang": "fr-FR",
+        "h1": [
+          "Le secret pour profiter d&#8217;un Wi-Fi illimité et économique sur un bateau"
+        ],
+        "h2": [
+          "Pourquoi la connexion internet reste un défi en mer",
+          "Le WiFi au port : gratuit mais limité",
+          "La 4G/5G : la solution la plus polyvalente en navigation côtière",
+          "La connexion par satellite : la seule option au large",
+          "L&#8217;installation du matériel à bord",
+          "Le WiFi à bord d&#8217;un bateau de croisière",
+          "Astuces pour réduire la facture et optimiser la connexion",
+          "La sécurité de votre connexion en mer",
+          "Les usages qui changent la vie à bord",
+          "Quelle solution choisir selon votre navigation"
+        ],
+        "h3": [
+          "Les antennes 4G pour bateau",
+          "La question de la 5G en mer",
+          "La portée réelle selon les fréquences",
+          "Les satellites géostationnaires classiques",
+          "Starlink Maritime : la révolution de l&#8217;internet en mer",
+          "Comment fonctionne le WiFi sur un paquebot",
+          "Les forfaits WiFi des principales compagnies",
+          "L&#8217;alternative de l&#8217;eSIM en escale"
+        ],
+        "words": 3800,
+        "root": "article",
+        "tables": 4,
+        "images": 7,
+        "faq": false,
+        "schemaTypes": [
+          "ImageObject",
+          "NewsArticle",
+          "Organization",
+          "Person",
+          "WebPage",
+          "WebSite",
+          "organization"
+        ],
+        "published": "2023-08-04T06:44:00+00:00",
+        "modified": "2026-04-04T14:51:34+00:00"
+      }
+    },
+    {
+      "url": "https://www.tourisme-solidaire.org/wifi-en-bateau-de-croisiere-quelles-solutions-pour-rester-connecte/",
+      "status": 200,
+      "metrics": {
+        "title": "WiFi en bateau de croisière : quelles solutions pour rester connecté ? - Tourisme Solidaire",
+        "description": "Découvrez comment rester connecté en mer avec notre guide sur le WiFi en bateau de croisière. Comparez les offres, tarifs et astuces pour une connexion sereine.",
+        "lang": "fr-FR",
+        "h1": [
+          "WiFi en bateau de croisière : quelles solutions pour rester connecté ?"
+        ],
+        "h2": [
+          "Rester connecté en mer : un vrai défi pour les voyageurs",
+          "Panorama des solutions internet à bord des bateaux de croisière",
+          "Combien coûte le WiFi en croisière ? Comparatif des offres et astuces pour économiser",
+          "Éviter les mauvaises surprises : conseils pratiques pour une connexion sereine en voyage"
+        ],
+        "h3": [
+          "Cascade de la Vis en 2026 : nouvelles règles d&rsquo;accès, stationnement et baignade",
+          "Plage des marais de Pennedepie : guide complet pour s y baigner",
+          "Parking, routes, sentiers : comment rejoindre Cala d&rsquo;Orzu facilement ?"
+        ],
+        "words": 1257,
+        "root": "article",
+        "tables": 0,
+        "images": 1,
+        "faq": false,
+        "schemaTypes": [
+          "Article",
+          "BreadcrumbList",
+          "EntryPoint",
+          "ImageObject",
+          "ListItem",
+          "Person",
+          "PropertyValueSpecification",
+          "ReadAction",
+          "SearchAction",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2025-12-25T06:32:39+00:00",
+        "modified": "2026-03-10T23:37:19+00:00"
+      }
+    },
+    {
+      "url": "https://www.croisieres.fr/blog-voyage/msc-croisieres-forfaits-wifi-internet/",
+      "status": 200,
+      "metrics": {
+        "title": "Ce que vous devez savoir sur les forfaits wifi et internet à bord des navires de MSC Croisières - Le Blog de Croisieres.fr - L&#039;actualité croisière en 2026",
+        "description": "Ce que vous devez savoir sur les forfaits wifi et internet à bord des navires de MSC Croisières",
+        "lang": "fr-FR",
+        "h1": [],
+        "h2": [
+          "Comment les navires de MSC Croisières peuvent-ils proposer une connexion Internet à leurs passagers ?",
+          "Où et comment se connecter à bord de la flotte de MSC Croisières ?",
+          "Comment se passer des forfaits Internet lors d’une croisière à bord d’un paquebot de la flotte MSC ?"
+        ],
+        "h3": [
+          "Forfait n°1: Le Browse Internet Cruise Package",
+          "Forfait n°2: Le Browse &amp; Stream Internet Package",
+          "Laisser un commentaire"
+        ],
+        "words": 1163,
+        "root": "article",
+        "tables": 0,
+        "images": 3,
+        "faq": false,
+        "schemaTypes": [
+          "Article",
+          "BreadcrumbList",
+          "CommentAction",
+          "EntryPoint",
+          "ImageObject",
+          "ListItem",
+          "Person",
+          "PropertyValueSpecification",
+          "ReadAction",
+          "SearchAction",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2022-03-17T11:48:18+00:00",
+        "modified": "2026-06-10T12:36:46+00:00"
+      }
+    },
+    {
+      "url": "https://mybestsim.com/fr/esim-pour-la-croisiere-et-la-terre/",
+      "own": true,
+      "status": 200,
+      "metrics": {
+        "title": "Choisir une eSIM pour la croisière et la terre en 2026",
+        "description": "Découvrez la meilleure eSIM pour la croisière et la terre afin de rester connecté sans frais d’itinérance excessifs lors de vos escales en 2026.",
+        "lang": "fr-FR",
+        "h1": [
+          "Choisir une eSIM pour la croisière et la terre en 2026"
+        ],
+        "h2": [
+          "1. Comprendre les eSIM pour croisière : fonctionnement et avantages",
+          "2. Solutions eSIM spécialisées vs standard pour les voyages en mer",
+          "3. Couverture réseau et zones de connectivité en croisière",
+          "4. Comparatif des meilleurs fournisseurs d’eSIM croisière",
+          "5. Installation et configuration optimale de votre eSIM",
+          "6. Conclusion",
+          "FAQ"
+        ],
+        "h3": [
+          "Trouvez la meilleure eSIM pour votre voyage",
+          "Découvrez les meilleures offres eSIM pour votre destination ✅",
+          "Économisez sur votre prochain voyage avec nos offres eSIM ✅",
+          "✓ Guide Gratuit : Comment Voyager Moins Cher"
+        ],
+        "words": 1695,
+        "root": "main",
+        "tables": 2,
+        "images": 2,
+        "faq": true,
+        "schemaTypes": [
+          "Answer",
+          "Article",
+          "BreadcrumbList",
+          "FAQPage",
+          "ImageObject",
+          "ListItem",
+          "Organization",
+          "Person",
+          "Question",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-03-09T11:07:31+00:00",
+        "modified": "2026-03-09T11:07:36+00:00"
+      }
+    },
+    {
+      "url": "https://mybestsim.com/fr/meilleure-esim-pour-les-navires-de-croisiere-2026-ce-qui-fonctionne/",
+      "own": true,
+      "status": 200,
+      "metrics": {
+        "title": "Meilleure eSIM pour les navires de croisière 2026 : ce qui fonctionne",
+        "description": "Trouvez la meilleure eSIM pour les navires de croisière en 2026 : ce qui fonctionne en mer, ce qui fonctionne au port, et comment éviter les surprises d&#039;itinérance.",
+        "lang": "fr-FR",
+        "h1": [],
+        "h2": [
+          "Meilleure eSIM pour les bateaux de croisière 2026 : la réponse honnête",
+          "Pourquoi la plupart des eSIM ne fonctionnent pas de la même façon en mer",
+          "eSIM de croisière vs Wi-Fi du navire vs roaming",
+          "Notre stratégie d’achat recommandée pour les voyageurs en croisière",
+          "Comparer les fournisseurs d’eSIM pour les ports et les déplacements terrestres",
+          "Combien de données avez-vous besoin lors d’une croisière ?",
+          "Préparez votre téléphone avant l’embarquement",
+          "Quand une eSIM spécialisée en croisière est pertinente",
+          "Codes promo et vérifications finales des offres",
+          "Recommandation MyBestSim",
+          "FAQ : meilleure eSIM pour les bateaux de croisière 2026"
+        ],
+        "h3": [
+          "Combien de données pour votre voyage ?",
+          "Votre téléphone est-il compatible eSIM ?"
+        ],
+        "words": 2117,
+        "root": "main",
+        "tables": 2,
+        "images": 16,
+        "faq": true,
+        "schemaTypes": [
+          "AggregateRating",
+          "Answer",
+          "Article",
+          "BreadcrumbList",
+          "FAQPage",
+          "ImageObject",
+          "ItemList",
+          "ListItem",
+          "Organization",
+          "Person",
+          "Question",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-06-13T09:33:31+00:00",
+        "modified": "2026-07-11T10:15:26+00:00"
+      }
+    },
+    {
+      "url": "https://mybestsim.com/fr/meilleure-esim-pour-croisiere-dans-les-caraibes-que-choisir-en-2026/",
+      "own": true,
+      "status": 200,
+      "metrics": {
+        "title": "Meilleure eSIM pour une croisière dans les Caraïbes : que choisir en 2026",
+        "description": "Choisissez la meilleure eSIM pour une croisière dans les Caraïbes : couverture des ports, limites des jours en mer, besoins en données, conseils d&#039;installation et points à vérifier avant l&#039;embarquement.",
+        "lang": "fr-FR",
+        "h1": [],
+        "h2": [
+          "Meilleure eSIM pour une croisière dans les Caraïbes : la réponse courte",
+          "Comparer les forfaits eSIM actuels pour les Caraïbes",
+          "La règle spécifique aux croisières : les jours au port et en mer sont différents",
+          "Ce qu’il faut vérifier avant d’acheter une eSIM pour croisière dans les Caraïbes",
+          "De combien de données avez-vous besoin pour une croisière dans les Caraïbes ?",
+          "Quand devriez-vous installer votre eSIM ?",
+          "Comment éviter les frais de roaming lors d’une croisière",
+          "eSIM pour croisière dans les Caraïbes vs Wi-Fi du navire vs roaming domestique",
+          "Recommandation MyBestSim",
+          "FAQ"
+        ],
+        "h3": [
+          "Combien de données pour votre voyage ?",
+          "Votre téléphone est-il compatible eSIM ?"
+        ],
+        "words": 1970,
+        "root": "main",
+        "tables": 2,
+        "images": 7,
+        "faq": true,
+        "schemaTypes": [
+          "Answer",
+          "Article",
+          "BreadcrumbList",
+          "FAQPage",
+          "ImageObject",
+          "ListItem",
+          "Organization",
+          "Person",
+          "Question",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-06-18T08:22:02+00:00",
+        "modified": "2026-07-11T09:59:36+00:00"
+      }
+    },
+    {
+      "url": "https://mybestsim.com/fr/frais-de-roaming-en-croisiere-dans-lue-guide-2026/",
+      "own": true,
+      "status": 200,
+      "metrics": {
+        "title": "Frais de roaming en croisière dans l’UE : guide 2026",
+        "description": "Frais de roaming en croisière dans l’UE : quand le roaming européen s’applique, quand le réseau du navire coûte cher, et comment utiliser une eSIM.",
+        "lang": "fr-FR",
+        "h1": [],
+        "h2": [
+          "Les règles du roaming européen s’appliquent-elles dans les ports de croisière ?",
+          "La règle simple : réseau terrestre OK, réseau du navire risqué",
+          "Quand une eSIM est utile pendant une croisière en Europe",
+          "Les réglages à faire avant de quitter le port",
+          "Combien de data prévoir pour les escales ?",
+          "Ce qu’il faut vérifier avec votre opérateur avant la croisière",
+          "La configuration la plus sûre pour une croisière en Méditerranée",
+          "Les sources officielles à connaître",
+          "FAQ"
+        ],
+        "h3": [
+          "Combien de données pour votre voyage ?"
+        ],
+        "words": 2181,
+        "root": "main",
+        "tables": 1,
+        "images": 16,
+        "faq": true,
+        "schemaTypes": [
+          "AggregateRating",
+          "Answer",
+          "BreadcrumbList",
+          "FAQPage",
+          "ImageObject",
+          "ItemList",
+          "ListItem",
+          "Organization",
+          "Question",
+          "WebPage",
+          "WebSite"
+        ],
+        "published": "2026-08-22T13:22:07+00:00",
+        "modified": "2026-08-22T13:22:07+00:00"
+      }
+    }
+  ]
+}

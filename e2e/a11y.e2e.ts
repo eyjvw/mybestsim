@@ -31,7 +31,7 @@ test.describe("accessibility (axe, WCAG 2.1 AA)", () => {
     });
   }
 
-  for (const path of ["/analyse", "/offres", "/qualite"]) {
+  for (const path of ["/analyse", "/offres", "/qualite", "/blog/internet-croisiere-esim/"]) {
     test(`${path} has no serious violation`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
