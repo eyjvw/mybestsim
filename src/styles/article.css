@@ -1,12 +1,68 @@
 /* Blog article: readable measure, MyBestSim look (Poppins, blue accent, white cards). Colours come
    from the theme tokens of global.css, so the article follows the light and dark themes. */
+/* Same width as the rest of the site: the title spans the page, the reading column takes the
+   space left by a sticky side column, and running text keeps a readable measure (75 characters)
+   while tables, figures and boxes use the whole column. */
 .article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   font-size: 1.0625rem;
   line-height: 1.75;
   color: var(--ink);
 }
-.article > * + * {
+.article-body {
+  margin-top: 1.6rem;
+}
+.article-body > * + * {
   margin-top: 1.1rem;
+}
+.article-body > p,
+.article-body > ul,
+.article-body > ol,
+.article-body > h2,
+.article-body > h3,
+.article .lead {
+  max-width: 75ch;
+}
+.article-side {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .article {
+    grid-template-columns: minmax(0, 1fr) 18.5rem;
+    column-gap: clamp(2.5rem, 4vw, 5rem);
+  }
+  .article > header {
+    grid-column: 1 / -1;
+  }
+  .article-body {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .article-side {
+    display: block;
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .article .toc-inline {
+    display: none;
+  }
+}
+@media (min-width: 1280px) {
+  .article .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+}
+.article .intro > * + * {
+  margin-top: 1.1rem;
+}
+@media (min-width: 1280px) {
+  .article .intro > * + * {
+    margin-top: 0;
+  }
 }
 .article .kicker {
   font-size: 0.75rem;
@@ -17,7 +73,7 @@
 }
 .article h1 {
   margin-top: 0.4rem;
-  font-size: clamp(2rem, 1.2rem + 3.2vw, 3.1rem);
+  font-size: clamp(2rem, 1.1rem + 3.4vw, 3.8rem);
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -31,7 +87,6 @@
   color: var(--ink-3);
 }
 .article .lead {
-  margin-top: 1.6rem;
   font-size: 1.15rem;
   color: var(--ink-2);
 }
@@ -319,4 +374,72 @@
 }
 .article .sources > .small {
   margin-top: 0.9rem;
+}
+
+/* Side column of wide screens, last so its more specific rules win over the base ones. */
+.article-side-inner {
+  position: sticky;
+  top: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.6rem;
+}
+.article-side .toc {
+  font-size: 0.9rem;
+}
+.article-side .toc ol {
+  list-style: none;
+  padding-left: 0;
+}
+.article-side .toc li + li {
+  margin-top: 0.15rem;
+}
+.article-side .toc a {
+  display: block;
+  padding: 0.3rem 0.6rem;
+  border-left: 2px solid var(--line);
+  color: var(--ink-2);
+  text-decoration: none;
+  line-height: 1.4;
+}
+.article-side .toc a:hover {
+  color: var(--ink);
+  border-left-color: var(--rule);
+}
+.article-side .toc a[aria-current] {
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.article .side-card {
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.article .side-card > * + * {
+  margin-top: 0.7rem;
+}
+.article .side-card-title {
+  font-weight: 700;
+}
+.article .side-card .cta-button {
+  display: block;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  background: var(--cta);
+  color: #ffffff;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.article .side-card .cta-button:hover {
+  filter: brightness(0.95);
+}
+.article .side-link {
+  display: block;
+  font-size: 0.85rem;
 }
