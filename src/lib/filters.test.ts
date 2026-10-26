@@ -1,5 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { activeFilterCount, applyFilters, DEFAULT_FILTERS, type Filters } from "./filters";
+import {
+  activeFilterCount,
+  applyFilters,
+  DEFAULT_FILTERS,
+  type FilterDomain,
+  type Filters,
+  filterOptions,
+  filtersFromSearch,
+  filtersToSearch,
+} from "./filters";
 import { product } from "./fixtures";
 import { computeStats } from "./stats";
 
@@ -77,5 +86,63 @@ describe("applyFilters", () => {
     expect(s.over100.count).toBe(1);
     expect(s.data).toEqual({ avgGb: 5, finiteCount: 1, unlimited: 1 });
     expect(s.price.avg).toBe(65);
+  });
+});
+
+describe("filters in the URL", () => {
+  const domain: FilterDomain = {
+    providers: ["Airalo", "Holafly"],
+    destinations: ["FR", "JP", "EU"],
+    validities: [7, 15, 30],
+    dataTiers: [1, 5, 20, null],
+  };
+
+  test("default filters give an empty query string", () => {
+    expect(filtersToSearch(DEFAULT_FILTERS)).toBe("");
+    expect(filtersFromSearch("", domain)).toEqual(DEFAULT_FILTERS);
+  });
+
+  test("round-trips every filter", () => {
+    const f: Filters = {
+      provider: "Holafly",
+      zone: "country",
+      destination: "JP",
+      network: "5G",
+      validity: 15,
+      data: 20,
+      topUp: "yes",
+    };
+    const search = filtersToSearch(f);
+    expect(search).toBe(
+      "?fournisseur=Holafly&zone=country&destination=JP&reseau=5G&duree=15&data=20&recharge=yes",
+    );
+    expect(filtersFromSearch(search, domain)).toEqual(f);
+    expect(filtersFromSearch("?data=unlimited", domain).data).toBe("unlimited");
+  });
+
+  test("ignores unknown or invalid values", () => {
+    const f = filtersFromSearch(
+      "?fournisseur=Nope&zone=moon&destination=XX&reseau=3G&duree=9&data=7&recharge=maybe",
+      domain,
+    );
+    expect(f).toEqual(DEFAULT_FILTERS);
+  });
+
+  test("drops a destination outside the chosen zone", () => {
+    expect(filtersFromSearch("?zone=country&destination=EU", domain).destination).toBe("all");
+    expect(filtersFromSearch("?zone=region&destination=EU", domain).destination).toBe("EU");
+  });
+});
+
+describe("filterOptions", () => {
+  test("providers and destinations of the catalog, sorted in French, regions flagged", () => {
+    const o = filterOptions(catalog);
+    expect(o.providers).toEqual(["Airalo", "Holafly"]);
+    expect(o.destinations.map((d) => [d.code, d.region])).toEqual([
+      ["EU", true],
+      ["FR", false],
+      ["JP", false],
+      ["WW", true],
+    ]);
   });
 });
