@@ -17,6 +17,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
+    // No transitions (global.css honours reduced motion): axe must never measure a colour
+    // halfway through the theme switch.
+    contextOptions: { reducedMotion: "reduce" },
     trace: "retain-on-failure",
     locale: "fr-FR",
     timezoneId: "Europe/Paris",

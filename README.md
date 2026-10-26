@@ -207,7 +207,9 @@ flowchart LR
   merge.
 - Les tests navigateur tournent dans l'image officielle Playwright, avec Chromium et ses
   bibliothèques déjà installés.
-- Dependabot couvre les dépendances bun, les actions GitHub et les images Docker.
+- Dependabot couvre les dépendances bun, les actions GitHub et les images Docker. Deux montées
+  se font à la main : TypeScript en version majeure (refusée par `astro check`), et
+  `@playwright/test`, qui doit suivre l'image Playwright du job e2e.
 - L'historique suit GitHub Flow : une PR par sujet, squash merge une fois la CI verte, et des
   commits au format Conventional Commits.
 
@@ -308,6 +310,8 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Le curseur restait une flèche sur les boutons | signalé par moi, puis test e2e |
 | Le service non-root ne pouvait pas écrire dans un volume Docker neuf, qui appartient à root | premier passage du smoke test des conteneurs en CI |
 | L'installation de Chromium sur le runner prenait 14 minutes, et le job e2e dépassait sa limite | premier passage de la CI, puis passage à l'image Playwright |
+| Un test axe était instable : il mesurait le contraste pendant la transition de thème | CI d'une PR Dependabot, sans rapport avec la montée de versions |
+| La configuration Dependabot laissait passer TypeScript 7 et une version de Playwright différente de l'image de la CI | CI rouge sur les premières PR Dependabot |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de

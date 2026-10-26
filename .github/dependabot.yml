@@ -6,6 +6,12 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # astro check (@astrojs/check 0.9) refuses TypeScript 7.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # Must move together with the Playwright image of the e2e job (ci.yml): bumped by hand.
+      - dependency-name: "@playwright/test"
     groups:
       dependencies:
         patterns: ["*"]
