@@ -13,10 +13,12 @@
     "format": "biome check --write .",
     "validate": "bun scripts/validate-data.ts",
     "test": "bun test",
+    "e2e": "bun run build && playwright test",
     "data-report": "bun scripts/data-report.ts",
     "ingest": "bun server/main.ts",
     "import": "bun scripts/import.ts",
-    "dev:live": "bun run build && STATIC_DIR=dist PORT=4322 HOST=127.0.0.1 INGEST_TOKEN=dev-token-not-for-production INBOX_INTERVAL_MS=2000 bun server/main.ts --ephemeral"
+    "dev:live": "bun run build && STATIC_DIR=dist PORT=4322 HOST=127.0.0.1 INGEST_TOKEN=dev-token-not-for-production INBOX_INTERVAL_MS=2000 bun server/main.ts --ephemeral",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@astrojs/react": "7.1.1",
@@ -31,7 +33,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
+    "@axe-core/playwright": "4.13.0",
     "@biomejs/biome": "2.6.2",
+    "@playwright/test": "1.63.0",
     "@types/bun": "1.4.4",
     "@types/papaparse": "5.5.2",
     "@types/react": "19.3.0",

@@ -1,0 +1,22 @@
+# Weekly dependency updates, one PR per ecosystem group. Each PR runs the full CI
+# (unit, e2e, Docker build), so an upgrade only lands green.
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

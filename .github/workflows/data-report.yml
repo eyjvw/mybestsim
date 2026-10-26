@@ -1,0 +1,57 @@
+name: Data report
+
+# On every PR that touches data/, compare the supplier CSVs with the base branch and post
+# (or update) one comment: schema rejections, added / removed / repriced offers and
+# business anomalies. The schema gate itself stays in CI's `check` job.
+on:
+  pull_request:
+    paths:
+      - "data/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: data-report-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+
+      - name: Extract base branch data
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/base"
+          git archive "$BASE_SHA" data | tar -x -C "$RUNNER_TEMP/base"
+
+      - name: Build the report
+        run: |
+          bun scripts/data-report.ts --base "$RUNNER_TEMP/base/data" --head data --out report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Fork PRs get a read-only token: the report stays in the job summary.
+      - name: Post or update the PR comment
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          marker='<!-- mybestsim-data-report -->'
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -n1)
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@report.md >/dev/null
+          else
+            gh pr comment "$PR" --body-file report.md
+          fi
