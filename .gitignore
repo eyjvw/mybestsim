@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.astro/
+
+# env
+.env
+.env.*
+
+# logs / os
+*.log
+.DS_Store
+
+# local only: brief, raw archive, completion ledgers
+*.pdf
+*.zip
+.unlazy/
