@@ -18,7 +18,9 @@
     "ingest": "bun server/main.ts",
     "import": "bun scripts/import.ts",
     "dev:live": "bun run build && STATIC_DIR=dist PORT=4322 HOST=127.0.0.1 INGEST_TOKEN=dev-token-not-for-production INBOX_INTERVAL_MS=2000 bun server/main.ts --ephemeral",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "checks": "bun checks/run.mjs",
+    "checks:live": "bun checks/run.mjs --live"
   },
   "dependencies": {
     "@astrojs/react": "7.1.1",
