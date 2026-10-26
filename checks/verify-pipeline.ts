@@ -85,6 +85,8 @@ if (!/handle \/api\/\* \{[\s\S]*?reverse_proxy \{\$INGEST_UPSTREAM:ingest:3000\}
 if (!/handle_path \/data\/\* \{[\s\S]*?root \* \/live\/current/.test(caddy))
   fail("Caddy does not serve the volume's current release");
 if (!/max_size 6MB/.test(caddy)) fail("no upload size limit at the proxy");
+if (!/handle_path \/sandbox\/data\/\* \{[\s\S]*?root \* \/live\/sandbox\/current/.test(caddy))
+  fail("Caddy does not serve the sandbox from /live/sandbox/current");
 
 const compose = load("deploy/docker-compose.yml");
 const web = compose.services?.mybestsim ?? fail("compose: no web service");

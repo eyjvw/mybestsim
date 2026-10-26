@@ -15,6 +15,7 @@ const CI = [
   ["verify-brand.mjs", "MyBestSim tokens and self-hosted fonts in the built CSS"],
   ["verify-diff.mjs", "the import report against an independent SKU diff"],
   ["verify-ingest.mjs", "publish through the real server, refusals change nothing"],
+  ["verify-sandbox.mjs", "public sandbox: no token, production untouched, hourly limit, reset"],
   ["verify-inbox-webhook.mjs", "inbox folder import and webhook payload"],
   ["verify-hardening.mjs", "short tokens, rate limits, unchanged re-sends, CLI"],
   ["verify-smoke-local.mjs", "scripts/smoke.mjs against the real server"],

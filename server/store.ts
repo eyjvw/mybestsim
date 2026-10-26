@@ -109,22 +109,47 @@ export class DataStore {
 
   private seed(): void {
     if (this.currentId() || !this.options.seedDir) return;
-    const seed = readdirSync(this.options.seedDir)
+    this.publishSeed();
+  }
+
+  private publishSeed(): string {
+    const dir = this.options.seedDir;
+    if (!dir) throw new Error("no seed directory");
+    const seed = readdirSync(dir)
       .filter((f) => f.toLowerCase().endsWith(".csv"))
       .sort()
-      .map((file) => ({
-        file,
-        text: readFileSync(join(this.options.seedDir as string, file), "utf8"),
-      }));
+      .map((file) => ({ file, text: readFileSync(join(dir, file), "utf8") }));
     const plan = planImport([], seed, { force: true });
     if (plan.status !== "published")
       throw new Error(`seed data is invalid: ${plan.reasons.join(" ")}`);
+    const importId = newImportId();
     this.writeRelease(plan, {
-      importId: newImportId(),
+      importId,
       importedAt: new Date().toISOString(),
       previousImportId: null,
       source: "seed",
     });
+    return importId;
+  }
+
+  /**
+   * Back to the seed files, history forgotten: the sandbox's nightly reset. The seed is published
+   * as a new release before the old ones go, so readers never see an empty volume.
+   */
+  reset(): Promise<string> {
+    const run = this.queue.then(() =>
+      this.withLock(() => {
+        const importId = this.publishSeed();
+        for (const d of readdirSync(this.releasesDir)) {
+          if (!d.startsWith(".") && d !== importId)
+            rmSync(join(this.releasesDir, d), { recursive: true, force: true });
+        }
+        rmSync(join(this.dir, "imports.jsonl"), { force: true });
+        return importId;
+      }),
+    );
+    this.queue = run.catch(() => {});
+    return run;
   }
 
   currentId(): string | null {

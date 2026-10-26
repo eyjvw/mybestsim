@@ -50,7 +50,24 @@ if (again.status !== "unchanged") fail("the same file twice must be unchanged");
 const after = await (await get("/data/catalog.json")).json();
 if (after.products.length !== before.products.length + 1)
   fail("new offer missing from /data/catalog.json");
+
+// The public sandbox: no token, served under /sandbox/data, production untouched.
+const sandboxHealth = await (await get("/api/sandbox/health")).json();
+const sandboxNext = `${roamic}\nroamic-998866,Roamic,eSIM Japon 3 Go 7 jours,JP,Japon,3,3 Go,7,7.77,EUR,4G,non\n`;
+const demo = await fetch(`${base}/api/sandbox/imports?file=roamic.csv`, {
+  method: "POST",
+  headers: { "Content-Type": "text/csv" },
+  body: sandboxNext,
+});
+const demoBody = await demo.json();
+if (demo.status !== 201)
+  fail(`sandbox publish returned ${demo.status}: ${JSON.stringify(demoBody)}`);
+const demoVersion = await (await get("/sandbox/data/version.json")).json();
+if (demoVersion.importId !== demoBody.importId || demoVersion.importId === sandboxHealth.importId)
+  fail("/sandbox/data is not the sandbox's new release");
+if ((await (await get("/api/health")).json()).importId !== body.importId)
+  fail("a sandbox publish changed production");
 if ((await (await get("/version.json")).json()).sha !== build.sha) fail("the site was rebuilt");
 console.log(
-  `SMOKE PASSED (build ${String(build.sha).slice(0, 7)}, release ${body.importId}, ${after.products.length} offres)`,
+  `SMOKE PASSED (build ${String(build.sha).slice(0, 7)}, release ${body.importId}, ${after.products.length} offres, sandbox ${demoBody.importId})`,
 );

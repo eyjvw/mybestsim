@@ -26,6 +26,9 @@ const health = await (await fetch(`${base}/api/health`)).json();
 if (!health.ok || !health.importId) fail("ingest health");
 const live = await (await fetch(`${base}/data/version.json`)).json();
 if (live.importId !== health.importId) fail("/data is not the ingest volume's current release");
+const sandbox = await (await fetch(`${base}/api/sandbox/health`)).json();
+const sandboxData = await (await fetch(`${base}/sandbox/data/version.json`)).json();
+if (!sandbox.ok || sandboxData.importId !== sandbox.importId) fail("sandbox not served");
 for (const h of [
   "strict-transport-security",
   "content-security-policy",

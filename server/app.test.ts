@@ -155,3 +155,74 @@ describe("ingest API", () => {
     expect(notified.map((o) => o.status)).toEqual(["published", "unchanged"]);
   });
 });
+
+describe("sandbox API", () => {
+  function sandboxSetup(publishesPerHour = 3) {
+    const prod = tempStore();
+    const demo = tempStore();
+    cleanups.push(prod.cleanup, demo.cleanup);
+    const notified: ImportOutcome[] = [];
+    const app = createApp(prod.store, {
+      token: "secret",
+      maxBytes: 1024 * 1024,
+      notify: async (o) => {
+        notified.push(o);
+      },
+      sandbox: { store: demo.store, publishesPerHour },
+    });
+    return { app, prod: prod.store, demo: demo.store, notified };
+  }
+  const sandboxUpload = (text: string, ip = "198.51.100.7", query = "") => {
+    const form = new FormData();
+    form.append("file", new File([text], "beta.csv", { type: "text/csv" }));
+    return new Request(`http://x/api/sandbox/imports${query}`, {
+      method: "POST",
+      body: form,
+      headers: { "X-Forwarded-For": ip },
+    });
+  };
+
+  test("publishes without a token into the sandbox only, and pages nobody", async () => {
+    const { app, prod, demo, notified } = sandboxSetup();
+    const prodBefore = prod.currentId();
+    const res = await app(sandboxUpload(csv(row("b-1", "Beta", 8))));
+    expect(res.status).toBe(201);
+    const body = (await res.json()) as ImportOutcome;
+    expect(body.importId).toBe(demo.currentId());
+    expect(prod.currentId()).toBe(prodBefore);
+    expect(prod.history()).toEqual([]);
+    expect(notified).toEqual([]);
+    const health = await (await app(new Request("http://x/api/sandbox/health"))).json();
+    expect(health).toEqual({ ok: true, importId: demo.currentId() });
+  });
+
+  test("production still needs the token", async () => {
+    const { app } = sandboxSetup();
+    expect((await app(upload(csv(row("b-1", "Beta", 8))))).status).toBe(401);
+  });
+
+  test("the hourly publish limit is per client, and previews do not use it", async () => {
+    const { app } = sandboxSetup(2);
+    for (const price of [8, 7]) {
+      expect((await app(sandboxUpload(csv(row("b-1", "Beta", price))))).status).toBe(201);
+    }
+    expect((await app(sandboxUpload(csv(row("b-1", "Beta", 6))))).status).toBe(429);
+    expect((await app(sandboxUpload(csv(row("b-1", "Beta", 6)), "203.0.113.9"))).status).toBe(201);
+    const preview = await app(sandboxUpload(csv(row("b-1", "Beta", 5)), undefined, "?dryRun=1"));
+    expect(preview.status).toBe(200);
+  });
+
+  test("the sandbox data is served under /sandbox/data in static mode", async () => {
+    const { app, demo } = sandboxSetup();
+    await app(sandboxUpload(csv(row("b-1", "Beta", 8))));
+    const v = await (await app(new Request("http://x/sandbox/data/version.json"))).json();
+    expect(v.importId).toBe(demo.currentId());
+    expect((await app(new Request("http://x/sandbox/data/../../etc/passwd"))).status).toBe(404);
+  });
+
+  test("without a sandbox, its routes answer 404", async () => {
+    const { app } = setup();
+    expect((await app(new Request("http://x/api/sandbox/health"))).status).toBe(404);
+    expect((await app(sandboxUpload(csv(row("b-1", "Beta", 8))))).status).toBe(404);
+  });
+});

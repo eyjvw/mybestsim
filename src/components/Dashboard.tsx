@@ -18,7 +18,14 @@ import {
   formatTier,
 } from "../lib/format";
 import { buildInsights } from "../lib/insights";
-import { type LiveCatalog, loadCatalog } from "../lib/runtime";
+import {
+  isSandbox,
+  LIVE_DATA,
+  type LiveCatalog,
+  loadCatalog,
+  SANDBOX_DATA,
+  withSandbox,
+} from "../lib/runtime";
 import { computeStats, DATA_TIERS, type Stats, VALIDITIES } from "../lib/stats";
 import type { Product, QualityReport } from "../lib/types";
 import { Changes } from "./Changes";
@@ -60,18 +67,52 @@ const when = (iso: string) =>
     timeZone: "Europe/Paris",
   });
 
-/** Where the figures come from: the last import (live) or the build snapshot. */
-function DataSource({ live, builtAt }: { live: LiveCatalog | null; builtAt: string }) {
+/** The current page without `?bac=1`: back to production's data. Client-side only. */
+const leaveSandbox = () => {
+  const { pathname, search, hash } = window.location;
+  return `${pathname}${withSandbox(search, false)}${hash}`;
+};
+
+/** Where the figures come from: the last import (live or sandbox) or the build snapshot. */
+function DataSource({
+  live,
+  builtAt,
+  sandbox,
+}: {
+  live: LiveCatalog | null;
+  builtAt: string;
+  sandbox: boolean;
+}) {
   if (!live) return null;
+  const origin = (v: NonNullable<LiveCatalog["version"]>) =>
+    v.source === "seed" ? "jeu initial" : v.source === "inbox" ? "dépôt fournisseur" : "API";
   return (
-    <span className="mt-1.5 flex items-start gap-2 text-xs text-ink-3" data-source={live.source}>
+    <span
+      className="mt-1.5 flex items-start gap-2 text-xs text-ink-3"
+      data-source={live.source}
+      data-sandbox={sandbox ? "" : undefined}
+    >
       <span
         aria-hidden="true"
-        className={`mt-1 size-2 shrink-0 rounded-full ${live.source === "live" ? "bg-good" : "bg-rule"}`}
+        className={`mt-1 size-2 shrink-0 rounded-full ${live.source !== "live" ? "bg-rule" : sandbox ? "bg-warn" : "bg-good"}`}
       />
-      {live.source === "live" && live.version
-        ? `Données en direct : import du ${when(live.version.importedAt)} (${live.version.source === "seed" ? "jeu initial" : live.version.source === "inbox" ? "dépôt fournisseur" : "API"}), sans rebuild du site.`
-        : `Instantané du build du ${when(builtAt)} (service d'ingestion non joignable).`}
+      {sandbox ? (
+        <span>
+          {live.source === "live" && live.version
+            ? `Bac à sable : import du ${when(live.version.importedAt)} (${origin(live.version)}). Données de démonstration, remises à zéro chaque nuit.`
+            : `Bac à sable indisponible : instantané du build du ${when(builtAt)}.`}{" "}
+          <a
+            className="font-semibold text-accent underline-offset-2 hover:underline"
+            href={leaveSandbox()}
+          >
+            Revenir aux données en ligne
+          </a>
+        </span>
+      ) : live.source === "live" && live.version ? (
+        `Données en direct : import du ${when(live.version.importedAt)} (${origin(live.version)}), sans rebuild du site.`
+      ) : (
+        `Instantané du build du ${when(builtAt)} (service d'ingestion non joignable).`
+      )}
     </span>
   );
 }
@@ -91,6 +132,9 @@ export default function Dashboard({
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const deferred = useDeferredValue(filters);
   const urlRead = useRef(false);
+  // ?bac=1: the public sandbox's data instead of production's, kept in every link.
+  const [sandbox, setSandbox] = useState(false);
+  const sandboxRef = useRef(false);
 
   // Filter choices follow the catalog shown: a new provider appears without a rebuild.
   const options = useMemo(
@@ -108,7 +152,10 @@ export default function Dashboard({
   );
 
   useEffect(() => {
-    loadCatalog()
+    const sb = isSandbox(window.location.search);
+    sandboxRef.current = sb;
+    setSandbox(sb);
+    loadCatalog(undefined, sb ? SANDBOX_DATA : LIVE_DATA)
       .then(setLive)
       .catch(() => setError(true));
   }, []);
@@ -123,13 +170,20 @@ export default function Dashboard({
   useEffect(() => {
     if (!urlRead.current) return;
     const { pathname, hash } = window.location;
-    const search = filtersToSearch(filters);
+    const search = withSandbox(filtersToSearch(filters), sandboxRef.current);
     window.history.replaceState(null, "", `${pathname}${search}${hash}`);
     // Links between pages carry the filters, so the selection follows the visitor.
     for (const a of document.querySelectorAll<HTMLAnchorElement>("a[data-keep-filters]")) {
       const url = new URL(a.href, window.location.href);
       url.search = search;
       a.href = `${url.pathname}${url.search}${url.hash}`;
+    }
+    // Pages without filters that can show the sandbox keep only its flag.
+    for (const a of document.querySelectorAll<HTMLAnchorElement>(
+      "a[data-keep-sandbox]:not([data-keep-filters])",
+    )) {
+      const url = new URL(a.href, window.location.href);
+      a.href = `${url.pathname}${withSandbox(url.search, sandboxRef.current)}${url.hash}`;
     }
   }, [filters]);
 
@@ -152,6 +206,28 @@ export default function Dashboard({
 
   return (
     <div className="space-y-10">
+      {sandbox && (
+        <div
+          role="status"
+          data-sandbox-banner
+          className="rounded-2xl border border-warn bg-warn/15 px-4 py-3 text-sm text-ink"
+        >
+          <strong>Bac à sable</strong> : vous voyez les données publiées sans jeton depuis{" "}
+          <a
+            className="font-semibold text-accent underline-offset-2 hover:underline"
+            href="/import"
+          >
+            la page d'import
+          </a>
+          , remises à zéro chaque nuit. Le vrai catalogue n'est pas touché.{" "}
+          <a
+            className="font-semibold text-accent underline-offset-2 hover:underline"
+            href={leaveSandbox()}
+          >
+            Revenir aux données en ligne
+          </a>
+        </div>
+      )}
       {view !== "quality" && (
         <FilterBar
           filters={filters}
@@ -178,7 +254,7 @@ export default function Dashboard({
               description={
                 <>
                   Les cinq premiers indicateurs demandés. Ils se recalculent selon les filtres.
-                  <DataSource live={live} builtAt={builtAt} />
+                  <DataSource live={live} builtAt={builtAt} sandbox={sandbox} />
                 </>
               }
             >

@@ -1,12 +1,15 @@
 // Ingest service: validates and publishes supplier CSVs into the data volume, no rebuild.
 // Env: PORT, DATA_DIR, SEED_DIR, INGEST_TOKEN, WEBHOOK_URL, SITE_URL, MAX_UPLOAD_MB,
-//      INBOX_INTERVAL_MS, STATIC_DIR. Flag --ephemeral: temporary DATA_DIR, removed on exit.
+//      INBOX_INTERVAL_MS, STATIC_DIR, and for the public sandbox SANDBOX (off disables it),
+//      SANDBOX_PUBLISHES_PER_HOUR, SANDBOX_RESET_HOUR, SANDBOX_TIMEZONE, SANDBOX_RESET_EVERY_MS.
+//      Flag --ephemeral: temporary DATA_DIR, removed on exit.
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { createApp } from "./app";
 import { startInbox } from "./inbox";
+import { scheduleResets } from "./sandbox";
 import { MIN_TOKEN_LENGTH, resolveToken } from "./security";
 import { DataStore } from "./store";
 import { sendWebhook } from "./webhook";
@@ -32,8 +35,21 @@ const ephemeralVolume = () => {
 };
 const dataDir = values.ephemeral ? ephemeralVolume() : (env.DATA_DIR ?? "/data");
 
-const store = new DataStore(dataDir, { seedDir: env.SEED_DIR ?? "data" });
+const seedDir = env.SEED_DIR ?? "data";
+const store = new DataStore(dataDir, { seedDir });
 store.init();
+// The sandbox lives next to production in the same volume, with its own releases and history.
+const sandbox =
+  env.SANDBOX === "off" ? null : new DataStore(join(dataDir, "sandbox"), { seedDir, keep: 10 });
+sandbox?.init();
+const stopResets = sandbox
+  ? scheduleResets(sandbox, {
+      hour: Number(env.SANDBOX_RESET_HOUR ?? 3),
+      timeZone: env.SANDBOX_TIMEZONE ?? "Europe/Paris",
+      everyMs: env.SANDBOX_RESET_EVERY_MS ? Number(env.SANDBOX_RESET_EVERY_MS) : undefined,
+      onReset: (id) => console.log(`sandbox reset: release ${id}`),
+    })
+  : () => {};
 const notify = (o: Parameters<typeof sendWebhook>[1]) =>
   sendWebhook(env.WEBHOOK_URL, o, env.SITE_URL);
 const token = resolveToken(env.INGEST_TOKEN);
@@ -45,6 +61,9 @@ const app = createApp(store, {
   maxBytes: Number(env.MAX_UPLOAD_MB ?? 5) * 1024 * 1024,
   staticDir: env.STATIC_DIR,
   notify,
+  sandbox: sandbox
+    ? { store: sandbox, publishesPerHour: Number(env.SANDBOX_PUBLISHES_PER_HOUR ?? 20) }
+    : undefined,
 });
 const stopInbox = startInbox(store, Number(env.INBOX_INTERVAL_MS ?? 10_000), notify);
 const server = Bun.serve({
@@ -54,11 +73,12 @@ const server = Bun.serve({
   fetch: (req, srv) => app(req, srv.requestIP(req)?.address ?? "unknown"),
 });
 console.log(
-  `ingest on http://${server.hostname}:${server.port} · data ${dataDir} · release ${store.currentId()} · publish ${token ? "on" : "off"}`,
+  `ingest on http://${server.hostname}:${server.port} · data ${dataDir} · release ${store.currentId()} · publish ${token ? "on" : "off"} · sandbox ${sandbox ? sandbox.currentId() : "off"}`,
 );
 
 const stop = () => {
   stopInbox();
+  stopResets();
   server.stop();
   if (values.ephemeral) rmSync(dataDir, { recursive: true, force: true });
   process.exit(0);
