@@ -179,7 +179,7 @@ chaque choix avec sa justification.
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
 | Unitaire | `bun test`, 153 tests dans 29 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
 | Navigateur | Playwright, 58 tests dans 6 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
-| Oracles | 20 scripts dans `.unlazy/` | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé |
+| Oracles | 18 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 14 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy ; processus non-root ; données conservées après redémarrage |
 
 Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
@@ -193,7 +193,7 @@ Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
 
 ```mermaid
 flowchart LR
-  pr["Pull request"] --> check["lint, typage,<br/>validation, tests, build"]
+  pr["Pull request"] --> check["lint, typage, validation,<br/>tests, build, oracles"]
   check --> e2e["Playwright<br/>static + live"]
   check --> ctr["images web + ingest<br/>smoke test"]
   pr -. "data/** seul" .-> report["rapport d'import<br/>en commentaire"]
@@ -201,6 +201,7 @@ flowchart LR
   img --> wt["Watchtower<br/>sur le VPS"] --> verify["verify : sha en ligne,<br/>smoke test"]
 ```
 
+- Le job `check` lance aussi les oracles indépendants de `checks/` après le build.
 - Les changements de `data/`, `docs/` et Markdown ne déclenchent pas la CI. Les données passent par
   le service d'ingestion, pas par un build.
 - Les tests navigateur et le smoke test des conteneurs tournent sur les PR, pas une seconde fois au
@@ -225,6 +226,7 @@ bun run lint         # Biome
 bun run check        # typage (astro check)
 bun run validate     # validation des CSV de data/
 bun test             # tests unitaires
+bun run checks       # oracles indépendants, après un build (--local : ceux qui demandent Caddy, dataviz)
 bun run e2e          # build + Playwright (installer d'abord Chromium : bunx playwright install chromium)
 bun run import --data-dir /tmp/vol data/airalo.csv      # import en ligne de commande
 bun run screenshots http://127.0.0.1:4322 <jeton>       # régénère les captures de ce README
@@ -245,7 +247,7 @@ e2e/                  tests Playwright
 docker/, Dockerfile   images web (Caddy) et ingest (Bun)
 deploy/               services Docker Compose pour le VPS
 docs/                 déploiement, feuille de route, captures
-.unlazy/              ledgers de complétion et oracles indépendants
+checks/               oracles indépendants : chiffres, service, CI (voir checks/README.md)
 ```
 
 ## Comment j'ai utilisé l'IA
@@ -261,11 +263,11 @@ décisions et la relecture.
    critères vérifiables (skill [unlazy](https://github.com/Leonxlnx/unlazy)). Chaque critère a une
    commande et un résultat attendu, par exemple « les chiffres affichés correspondent à un
    recalcul indépendant ». Le lot n'est terminé que lorsque tous les critères passent, et ils sont
-   tous relancés avant chaque compte rendu. Il y a 5 ledgers dans `.unlazy/`. Un hook bloque la fin
-   d'une session tant qu'un critère n'est pas rempli.
+   tous relancés avant chaque compte rendu. Un hook bloque la fin d'une session tant qu'un
+   critère n'est pas rempli. Les ledgers restent sur ma machine ; les oracles qu'ils appellent sont
+   versionnés dans [`checks/`](checks/README.md), et la CI les relance à chaque PR.
 2. **Des oracles indépendants.** Les chiffres ne sont jamais vérifiés par le code qui les produit.
-   Les valeurs de référence ont été mesurées en Python, puis les scripts de `.unlazy/*/checks`
-   relisent les CSV bruts avec un parseur volontairement naïf et recalculent tout : KPI, économies,
+   Les valeurs de référence ont été mesurées en Python, puis les scripts de `checks/` relisent les CSV bruts avec un parseur volontairement naïf et recalculent tout : KPI, économies,
    contrôles, diff entre imports.
 3. **Des contrôles négatifs.** Un test qui ne peut pas échouer ne prouve rien. Le test de
    débordement mobile a donc été lancé sur l'ancienne version, où il échoue comme prévu. L'oracle

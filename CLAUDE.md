@@ -51,12 +51,16 @@ l'IA.
 - Frontend : la skill `dataviz` pour tout graphique (palette validée par son script).
 - **README.md à jour dans chaque PR** qui change une fonctionnalité, une commande ou un choix,
   avec la section « Comment j'ai utilisé l'IA » (critère noté). Son oracle
-  `.unlazy/v5-pages-readme/checks/verify-readme.mjs` vérifie liens, captures et chiffres.
+  `checks/verify-readme.mjs` vérifie liens, captures et chiffres.
+- Oracles indépendants dans `checks/` (`checks/README.md`) : `bun run build && bun run checks`
+  (lancé par la CI), `--local` pour ceux qui demandent Caddy, le validateur dataviz et le tag
+  `pre-mobile-fix`, `bun run checks:live` après un déploiement.
 - Discipline de complétion : skill `unlazy` (https://github.com/Leonxlnx/unlazy, commit `1667149`,
   à installer dans `~/.claude/skills/unlazy`).
-  - Ledger : `.unlazy/part1/GATES.md`.
+  - Ledgers : `.unlazy/<lot>/GATES.md`, **locaux, jamais commités** (`.gitignore`). Leurs
+    `CHECK:` appellent les scripts de `checks/`.
   - Les approbations de gates sont locales à chaque machine : il faut les ré-approuver avec
-    `node ~/.claude/skills/unlazy/scripts/gate-check.mjs --approve --root $PWD --cwd $PWD .unlazy/part1/GATES.md`.
+    `node ~/.claude/skills/unlazy/scripts/gate-check.mjs --approve --timeout 900 --root $PWD --cwd $PWD .unlazy/<lot>/GATES.md`.
 - Modifs sur le VPS :
   - toujours avec l'accord explicite de l'utilisateur ;
   - sauvegarde avant modif (convention `.before-<sujet>`) ;
@@ -147,8 +151,8 @@ e2e s'appellent `*.e2e.ts` pour que `bun test` (qui prend aussi `*.spec.ts`) ne 
     `/api`, voir `docker/Caddyfile`) et `ingest` (Bun, `server/main.ts`) ; services d'exemple
     dans `deploy/docker-compose.yml` ;
   - la CI (`.github/workflows/ci.yml`) ignore `data/**`, `docs/**` et le Markdown ; à chaque PR
-    elle lance lint, check, validate, test, build, e2e (image Playwright) et les deux
-    builds Docker ; au push sur `main`, pas de second e2e ;
+    elle lance lint, check, validate, test, build, les oracles de `checks/`, e2e (image
+    Playwright) et les deux builds Docker ; au push sur `main`, pas de second e2e ;
   - `.github/workflows/data-report.yml` poste (ou met à jour) un rapport d'import sur chaque PR
     qui touche `data/` ; Dependabot (`.github/dependabot.yml`) couvre bun, actions et docker ;
   - sur `main`, elle pousse `ghcr.io/eyjvw/mybestsim-dashboard` et `…-ingest` (tags `latest`

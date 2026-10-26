@@ -53,6 +53,10 @@ jobs:
         run: bun test
       - name: Build
         run: bun run build
+      # Oracles that recompute every figure from the raw CSV files with their own parser,
+      # never with the code under test (checks/README.md).
+      - name: Independent checks
+        run: bun run checks
 
   e2e:
     if: github.event_name != 'push'
@@ -111,6 +115,8 @@ jobs:
           tags: mbs-web:ci
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
+      - name: Validate the image Caddyfile
+        run: docker run --rm mbs-web:ci caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       # Same wiring as deploy/docker-compose.yml: shared volume, read-only for web.
       - name: Smoke test web + ingest
         env:
