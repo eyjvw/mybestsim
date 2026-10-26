@@ -2,7 +2,7 @@
 # The outer Caddy keeps proxying mybestsim.sbonneau.xyz to `mybestsim:80`.
 services:
   mybestsim:
-    image: ghcr.io/eyjvw/mybestsim-dashboard:latest
+    image: ghcr.io/eyjvw/mybestsim:latest
     restart: unless-stopped
     expose: ["80"]
     volumes:
@@ -15,7 +15,7 @@ services:
 
   # A new volume belongs to root and the ingest service runs as `bun`: hand it over once.
   mybestsim-data-init:
-    image: ghcr.io/eyjvw/mybestsim-dashboard-ingest:latest
+    image: ghcr.io/eyjvw/mybestsim-ingest:latest
     user: "0"
     entrypoint: ["chown", "bun:bun", "/data"]
     volumes:
@@ -23,7 +23,7 @@ services:
     restart: "no"
 
   mybestsim-ingest:
-    image: ghcr.io/eyjvw/mybestsim-dashboard-ingest:latest
+    image: ghcr.io/eyjvw/mybestsim-ingest:latest
     restart: unless-stopped
     depends_on:
       mybestsim-data-init:

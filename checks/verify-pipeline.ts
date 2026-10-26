@@ -1,5 +1,6 @@
 // Structure of the v4 pipeline: data-only changes skip CI, e2e on PRs only with a cached
 // browser, two images, and the Caddy / compose wiring of /api and /data.
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const fail = (msg: string): never => {
@@ -99,7 +100,23 @@ if (
 if (ingest.depends_on?.["mybestsim-data-init"]?.condition !== "service_completed_successfully")
   fail("ingest must wait for the volume init");
 if (!ingest.volumes?.includes("mybestsim-data:/data")) fail("ingest must mount the data volume");
-if (!String(ingest.image).endsWith("-ingest:latest")) fail("ingest image name");
+// Watchtower pulls what the image job pushes: ghcr.io/<owner>/<repo>[-ingest], lowercase.
+const repo = (
+  process.env.GITHUB_REPOSITORY ??
+  execSync("git remote get-url origin")
+    .toString()
+    .trim()
+    .replace(/^.*github\.com[:/]/, "")
+    .replace(/\.git$/, "")
+).toLowerCase();
+const images = {
+  mybestsim: `ghcr.io/${repo}:latest`,
+  "mybestsim-ingest": `ghcr.io/${repo}-ingest:latest`,
+  "mybestsim-data-init": `ghcr.io/${repo}-ingest:latest`,
+};
+for (const [service, image] of Object.entries(images))
+  if (compose.services[service].image !== image)
+    fail(`compose ${service} pulls ${compose.services[service].image}, CI pushes ${image}`);
 if (ingest.environment?.INGEST_TOKEN)
   fail("the token must come from env_file, never from the compose file");
 console.log("PIPELINE OK");
