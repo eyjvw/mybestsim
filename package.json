@@ -12,7 +12,8 @@
     "lint": "biome ci .",
     "format": "biome check --write .",
     "validate": "bun scripts/validate-data.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "data-report": "bun scripts/data-report.ts"
   },
   "dependencies": {
     "@astrojs/react": "7.1.1",

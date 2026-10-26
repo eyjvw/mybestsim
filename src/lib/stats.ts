@@ -1,7 +1,9 @@
+import { computeMarket, type MarketStats } from "./compare";
+import { groupBy, mean, median } from "./math";
+import { REGION_CODES } from "./regions";
 import type { Network, Product } from "./types";
 
-/** Pseudo country codes used by suppliers for multi-country plans. */
-export const REGION_CODES: ReadonlySet<string> = new Set(["EU", "AS", "NA", "WW"]);
+export { median };
 export const DATA_TIERS: readonly (number | null)[] = [1, 3, 5, 10, 20, 50, null];
 export const VALIDITIES: readonly number[] = [7, 15, 30];
 export const PRICE_THRESHOLD = 100;
@@ -38,6 +40,29 @@ export interface BestDeal {
   eurPerGb: number;
 }
 
+export interface HistogramBin {
+  /** Inclusive lower bound, in EUR. */
+  from: number;
+  /** Exclusive upper bound, in EUR. */
+  to: number;
+  count: number;
+}
+
+export const HISTOGRAM_STEP = 10;
+
+/** Price distribution in fixed-width bins, from 0 to the first bound above the highest price. */
+export function priceHistogram(products: Product[], step = HISTOGRAM_STEP): HistogramBin[] {
+  if (products.length === 0) return [];
+  const max = Math.max(...products.map((p) => p.price));
+  const bins = Array.from({ length: Math.floor(max / step) + 1 }, (_, i) => ({
+    from: i * step,
+    to: (i + 1) * step,
+    count: 0,
+  }));
+  for (const p of products) bins[Math.floor(p.price / step)].count += 1;
+  return bins;
+}
+
 export interface Stats {
   total: number;
   over100: { count: number; share: number };
@@ -59,17 +84,9 @@ export interface Stats {
     validity: Share<number>[];
     coverage: { destinations: number; countries: number; regions: number };
     bestDeals: BestDeal[];
+    distribution: HistogramBin[];
   };
-}
-
-const sum = (xs: number[]) => xs.reduce((s, x) => s + x, 0);
-const mean = (xs: number[]) => (xs.length ? sum(xs) / xs.length : null);
-
-export function median(xs: number[]): number | null {
-  if (xs.length === 0) return null;
-  const s = [...xs].sort((a, b) => a - b);
-  const mid = s.length >> 1;
-  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+  market: MarketStats;
 }
 
 export const eurPerGb = (p: Product): number | null => (p.dataGb ? p.price / p.dataGb : null);
@@ -80,17 +97,6 @@ function shares<K>(products: Product[], keys: readonly K[], pick: (p: Product) =
     const count = products.filter((p) => pick(p) === key).length;
     return { key, count, share: total ? count / total : 0 };
   });
-}
-
-function groupBy<K>(products: Product[], pick: (p: Product) => K): Map<K, Product[]> {
-  const map = new Map<K, Product[]>();
-  for (const p of products) {
-    const k = pick(p);
-    const list = map.get(k);
-    if (list) list.push(p);
-    else map.set(k, [p]);
-  }
-  return map;
 }
 
 /** Every figure shown on the dashboard, computed from any product subset. */
@@ -178,6 +184,8 @@ export function computeStats(products: Product[], bestDealsLimit = 8): Stats {
       validity: shares(products, VALIDITIES, (p) => p.validityDays),
       coverage: { destinations: codes.length, countries: codes.length - regions, regions },
       bestDeals,
+      distribution: priceHistogram(products),
     },
+    market: computeMarket(products),
   };
 }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { product } from "./fixtures";
 import { loadCatalog } from "./load";
-import { computeStats, median } from "./stats";
+import { computeStats, median, priceHistogram } from "./stats";
 
 describe("median", () => {
   test("handles odd, even and empty inputs", () => {
@@ -66,6 +66,28 @@ describe("computeStats", () => {
       product({ countryCode: "NA" }),
     ]);
     expect(s.bonus.coverage).toEqual({ destinations: 3, countries: 1, regions: 2 });
+  });
+});
+
+describe("priceHistogram", () => {
+  test("10 € bins from 0, upper bound exclusive", () => {
+    const bins = priceHistogram([
+      product({ price: 5.36 }),
+      product({ price: 10 }),
+      product({ price: 19.99 }),
+    ]);
+    expect(bins).toEqual([
+      { from: 0, to: 10, count: 1 },
+      { from: 10, to: 20, count: 2 },
+    ]);
+    expect(priceHistogram([])).toEqual([]);
+  });
+
+  test("counts every product once on the real catalog", () => {
+    const { products } = loadCatalog();
+    const bins = priceHistogram(products);
+    expect(bins.reduce((s, b) => s + b.count, 0)).toBe(products.length);
+    expect(bins).toHaveLength(16);
   });
 });
 
