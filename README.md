@@ -308,6 +308,7 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Le contrôle « offres incohérentes » recomptait les doublons | revue visuelle des listes, recalcul en Python (553 ramené à 351) |
 | Deux imports dans la même milliseconde donnaient des ids non chronologiques | test instable relancé 5 fois, cause trouvée, test dédié |
 | Des dossiers temporaires restaient après les tests | vérification de `/tmp` après chaque série |
+| Le serveur des tests e2e, arrêté par `SIGKILL`, laissait son volume temporaire dans `/tmp` | contrôle de `/tmp` après une série complète, puis arrêt par `SIGTERM` vérifié par un oracle |
 | Un oracle en échec laissait un worktree git derrière lui | `git worktree list` après une ré-vérification |
 | En mode statique, trois erreurs 404 dans la console | test e2e « zéro erreur console » |
 | Un oracle attendait un mauvais nom de fichier | relecture de l'oracle contre le comportement voulu |

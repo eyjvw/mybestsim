@@ -119,4 +119,9 @@ for (const [service, image] of Object.entries(images))
     fail(`compose ${service} pulls ${compose.services[service].image}, CI pushes ${image}`);
 if (ingest.environment?.INGEST_TOKEN)
   fail("the token must come from env_file, never from the compose file");
+// The e2e live server must get SIGTERM, or its ephemeral volume stays in the temp directory.
+const pw = readFileSync("playwright.config.ts", "utf8");
+const live = pw.slice(pw.indexOf("server/main.ts --ephemeral"));
+if (!/gracefulShutdown: \{ signal: "SIGTERM"/.test(live.slice(0, live.indexOf("env:"))))
+  fail("the e2e live server is SIGKILLed: its ephemeral volume is never removed");
 console.log("PIPELINE OK");
