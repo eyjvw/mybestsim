@@ -1,8 +1,9 @@
-# Services to add to ~/infra/docker-compose.yml on the VPS (see docs/DEPLOY.md).
-# The outer Caddy keeps proxying mybestsim.sbonneau.xyz to `mybestsim:80`.
+# Services of ~/infra/docker-compose.yml on the VPS (see docs/DEPLOY.md), kept identical here.
+# The outer Caddy proxies mybestsim.sbonneau.xyz to `mybestsim:80` (deploy/Caddyfile).
 services:
   mybestsim:
     image: ghcr.io/eyjvw/mybestsim:latest
+    container_name: mybestsim
     restart: unless-stopped
     expose: ["80"]
     volumes:
@@ -16,6 +17,7 @@ services:
   # A new volume belongs to root and the ingest service runs as `bun`: hand it over once.
   mybestsim-data-init:
     image: ghcr.io/eyjvw/mybestsim-ingest:latest
+    container_name: mybestsim-data-init
     user: "0"
     entrypoint: ["chown", "bun:bun", "/data"]
     volumes:
@@ -24,6 +26,7 @@ services:
 
   mybestsim-ingest:
     image: ghcr.io/eyjvw/mybestsim-ingest:latest
+    container_name: mybestsim-ingest
     restart: unless-stopped
     depends_on:
       mybestsim-data-init:
@@ -33,6 +36,7 @@ services:
       - mybestsim-data:/data
     env_file: .env.mybestsim # INGEST_TOKEN, WEBHOOK_URL (never committed)
     environment:
+      TZ: Europe/Paris
       SITE_URL: https://mybestsim.sbonneau.xyz
     labels:
       com.centurylinklabs.watchtower.enable: "true"

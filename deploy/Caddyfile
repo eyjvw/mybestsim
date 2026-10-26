@@ -1,0 +1,16 @@
+# Site block of the VPS's outer Caddy (~/infra/caddy/Caddyfile), kept identical here.
+# The web image serves the site, /data and /api itself: TLS and security headers live here.
+# checks/verify-caddy.mjs validates this file; checks/verify-live.mjs compares the live CSP to it.
+mybestsim.sbonneau.xyz {
+	reverse_proxy mybestsim:80
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+		-Server
+	}
+}

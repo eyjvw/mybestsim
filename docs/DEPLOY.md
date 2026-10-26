@@ -104,23 +104,33 @@ Ce fichier n'est jamais commité ni affiché.
 
 ## Mise en place sur le VPS
 
-Les étapes du `CLAUDE.md` (« Prochaines étapes », Déploiement) s'appliquent avec ces
-changements :
+Le site tourne sur le VPS depuis le 26 octobre 2026, à côté d'autres sites servis par le même
+Caddy. `deploy/` contient la copie exacte de ce qui y a été ajouté.
 
-1. Rendre publics les deux packages GHCR : `mybestsim` et `mybestsim-ingest`.
-2. Ajouter au compose les services de `deploy/docker-compose.yml` : `mybestsim`,
-   `mybestsim-ingest` avec le volume `mybestsim-data`, et `mybestsim-data-init`. Les deux
-   premiers sont sur le réseau de `caddy`. Un volume neuf appartient à root, et le service
-   tourne en non-root (`bun`) : `mybestsim-data-init` lui donne le volume une fois, avant le
-   démarrage du service. L'image web monte le volume en lecture seule sur `/live`, et non sur
-   `/data`, qui est le dossier de travail de Caddy.
-3. Créer `~/infra/.env.mybestsim` avec `INGEST_TOKEN` et, si besoin, `WEBHOOK_URL`.
-4. Le bloc Caddy du VPS ne change pas : `reverse_proxy mybestsim:80`. L'image web route
-   elle-même `/api` et `/data`.
-5. Lancer `docker compose up -d mybestsim-data-init mybestsim-ingest mybestsim`, puis vérifier que
-   `/api/health` et `/data/version.json` répondent. Les deux images ont un `HEALTHCHECK`.
+1. **Sauvegardes** : `docker-compose.yml.before-mybestsim` et `caddy/Caddyfile.before-mybestsim`
+   dans `~/infra`, avant toute modification.
+2. **Secret** : `~/infra/.env.mybestsim` (droits 600) contient `INGEST_TOKEN`, généré sur le VPS
+   avec `openssl rand -hex 32` et jamais affiché, et, si besoin, `WEBHOOK_URL`. Le `.gitignore`
+   de `~/infra` ignore `.env.*`.
+3. **Services** : ceux de [`deploy/docker-compose.yml`](../deploy/docker-compose.yml)
+   (`mybestsim`, `mybestsim-ingest`, `mybestsim-data-init` et le volume `mybestsim-data`), sur le
+   réseau par défaut du compose, celui de `caddy`. Un volume neuf appartient à root, et le
+   service tourne en non-root (`bun`) : `mybestsim-data-init` lui donne le volume une fois, avant
+   le démarrage du service. L'image web monte le volume en lecture seule sur `/live`, et non sur
+   `/data`, qui est le dossier de travail de Caddy. Démarrage :
+   `docker compose up -d mybestsim-data-init mybestsim-ingest mybestsim`.
+4. **Caddy** : le bloc de [`deploy/Caddyfile`](../deploy/Caddyfile) (`reverse_proxy mybestsim:80`,
+   HSTS, CSP, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, sans en-tête
+   `Server`). L'image web route elle-même `/api` et `/data`. Le Caddyfile est monté seul dans le
+   conteneur : il faut le modifier sans changer son inode, sinon le conteneur garde l'ancien.
+   Puis `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`, et le reload
+   seulement si la validation passe. Le bloc ne s'ajoute qu'une fois le DNS en place, pour
+   éviter des échecs de certificat Let's Encrypt, limités en nombre par heure.
+5. **Vérification** : la variable de dépôt `DEPLOY_ENABLED` vaut `true`, donc le job `verify`
+   de la CI attend le sha en ligne après chaque merge. `bun run checks:live` vérifie en plus les
+   données live, les en-têtes et les sites voisins.
    `node scripts/smoke.mjs https://mybestsim.sbonneau.xyz "$INGEST_TOKEN"` rejoue le smoke test
-   de la CI. Il publie une offre de test : à réserver à un volume neuf.
+   des conteneurs ; il publie une offre de test, donc à réserver à un volume neuf.
 
 ## CI et coût
 

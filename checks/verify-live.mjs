@@ -2,6 +2,7 @@
 // live data and security headers, and the other sites behind the shared Caddy still answer.
 // Usage: bun run checks:live (after a deploy).
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { expectedFrom } from "./lib/expected.mjs";
 
 const fail = (msg) => {
@@ -34,6 +35,13 @@ for (const h of [
 ]) {
   if (!page.headers.get(h)) fail(`missing header ${h}`);
 }
+// The live policy is the one versioned in deploy/Caddyfile, and the Server header is gone.
+const csp = readFileSync("deploy/Caddyfile", "utf8").match(
+  /Content-Security-Policy "([^"]+)"/,
+)?.[1];
+if (page.headers.get("content-security-policy") !== csp)
+  fail("live CSP differs from deploy/Caddyfile");
+if (page.headers.get("server")) fail(`Server header leaks: ${page.headers.get("server")}`);
 for (const site of ["https://vynq.dev/", "https://sbonneau.xyz/", "https://stats.vynq.dev/"]) {
   const r = await fetch(site, { redirect: "manual" });
   if (r.status >= 500 || r.status === 0) fail(`${site} -> ${r.status}`);

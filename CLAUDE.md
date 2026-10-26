@@ -215,54 +215,42 @@ e2e s'appellent `*.e2e.ts` pour que `bun test` (qui prend aussi `*.spec.ts`) ne 
     négatif de `checks/verify-overflow-control.mjs`).
   - Une PR d'import en SSR + SQLite (autre session, ancien dépôt) a été fermée ; ses meilleures
     idées ont été reprises (rate-limit, `unchanged`, CLI, smoke des conteneurs).
-- Images GHCR : `ghcr.io/eyjvw/mybestsim` (web) et `ghcr.io/eyjvw/mybestsim-ingest`, packages
-  **privés** pour l'instant.
-- Le site n'est **pas encore déployé**. URL retenue : `mybestsim.sbonneau.xyz`. Le 26/10, elle ne
-  résolvait pas encore : il faut l'enregistrement A `mybestsim` vers `51.210.7.117` chez
-  Namecheap.
-- Reste à faire : déploiement, bac à sable public de démo, partie 2 (article SEO), présentation.
+- Images GHCR : `ghcr.io/eyjvw/mybestsim` (web) et `ghcr.io/eyjvw/mybestsim-ingest`. Packages
+  privés, mais le compte GHCR du VPS peut les tirer.
+- **En ligne depuis le 26/10/2026** sur <https://mybestsim.sbonneau.xyz>. Le job `verify` est
+  actif (`DEPLOY_ENABLED=true`) ; `bun run checks:live` passe (sha, chiffres, données live,
+  en-têtes, sites voisins).
+- Reste à faire : bac à sable public de démo, partie 2 (article SEO), présentation.
+
+## Exploitation du VPS
+
+- Accès : `ssh debian@51.210.7.117` avec la clé `eyjvw` (`~/.ssh/eyjvw` sur cette machine).
+  fail2ban bannit vite après des échecs d'authentification : l'erreur devient alors
+  `Connection refused` sur le port 22 (`sudo fail2ban-client set sshd unbanip <ip>`).
+- `~/infra` est un dépôt git qui contient d'autres sites (vynq.dev, sbonneau.xyz,
+  stats.vynq.dev, frappe) et des modifs non commitées qui ne sont pas les nôtres : n'y rien
+  committer.
+- Les services et le bloc Caddy sont la copie exacte de `deploy/docker-compose.yml` et
+  `deploy/Caddyfile` (conteneurs `mybestsim`, `mybestsim-ingest`, `mybestsim-data-init`, volume
+  `infra_mybestsim-data`). Sauvegardes d'avant mise en place : `*.before-mybestsim`.
+- Le Caddyfile est monté seul dans le conteneur `caddy` : le modifier sans changer son inode
+  (pas de `sed -i`), puis `docker exec caddy caddy validate --config /etc/caddy/Caddyfile` avant
+  `caddy reload`.
+- Jeton de publication : `grep INGEST_TOKEN ~/infra/.env.mybestsim` sur le VPS. Ne jamais
+  l'afficher ni le copier ailleurs.
+- Watchtower tire `latest` toutes les 60 s. Retour arrière des données : `docs/DEPLOY.md`.
 
 ## Prochaines étapes
 
-### 1. Déploiement
-
-1. **Packages GHCR.** Le VPS est connecté à `ghcr.io` en `vynq-studio` : il ne peut pas tirer un
-   package privé d'`eyjvw`.
-   - Recommandé : passer `mybestsim` et `mybestsim-ingest` en public. Le dépôt, lui, reste privé.
-   - Autre option : donner l'accès en lecture à `vynq-studio`.
-2. **VPS** (`ssh debian@51.210.7.117`, clé `eyjvw`), avec accord à chaque étape. Détail des
-   services, du volume et des variables dans `docs/DEPLOY.md` :
-   1. Sauvegarder `~/infra/caddy/Caddyfile` en `Caddyfile.before-mybestsim`, et
-      `~/infra/docker-compose.yml` en `docker-compose.yml.before-mybestsim`.
-   2. Ajouter au compose les services de `deploy/docker-compose.yml` (`mybestsim`,
-      `mybestsim-ingest`, `mybestsim-data-init`, volume `mybestsim-data`), sur le réseau de
-      `caddy`.
-   3. Ajouter le bloc Caddy `mybestsim.sbonneau.xyz` avec `reverse_proxy mybestsim:80` et ces
-      en-têtes :
-      - HSTS ;
-      - `X-Frame-Options DENY` ;
-      - `nosniff` ;
-      - `Referrer-Policy strict-origin-when-cross-origin` ;
-      - `Permissions-Policy` ;
-      - CSP : `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'` ;
-      - `-Server`.
-   4. Lancer `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`, puis recharger
-      Caddy.
-   5. Créer `~/infra/.env.mybestsim` (`INGEST_TOKEN` via `openssl rand -hex 32`, `WEBHOOK_URL`
-      facultatif), puis lancer
-      `docker compose up -d mybestsim-data-init mybestsim-ingest mybestsim`.
-3. **Activer le job `verify`** : `gh variable set DEPLOY_ENABLED --body true -R eyjvw/mybestsim`.
-4. **Vérifier** : `bun run checks:live`, puis à la main dans un navigateur sur l'URL en ligne.
-
-### 2. Partie 2
+### 1. Partie 2
 
 Article SEO. Voir le plan dans `docs/ROADMAP.md`.
 
-### 3. Améliorations et refonte frontend
+### 2. Améliorations et refonte frontend
 
 Responsive sur toutes les plateformes. Voir `docs/ROADMAP.md`.
 
-### 4. Présentation
+### 3. Présentation
 
 - README : lien en ligne, captures desktop, mobile et sombre dans `docs/`, schéma d'architecture
   et de CI/CD, choix assumés, lancement, usage de l'IA.
