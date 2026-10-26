@@ -48,8 +48,10 @@ l'IA.
     `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` ;
   - finir chaque PR par `🤖 Generated with [Claude Code](https://claude.com/claude-code)` ;
   - **jamais** de ligne `Claude-Session:` ni de lien de session, nulle part.
-- Frontend : utiliser le MCP `magic` (21st.dev) quand c'est pertinent, et la skill `dataviz` pour
-  tout graphique (palette validée par son script).
+- Frontend : la skill `dataviz` pour tout graphique (palette validée par son script).
+- **README.md à jour dans chaque PR** qui change une fonctionnalité, une commande ou un choix,
+  avec la section « Comment j'ai utilisé l'IA » (critère noté). Son oracle
+  `.unlazy/v5-pages-readme/checks/verify-readme.mjs` vérifie liens, captures et chiffres.
 - Discipline de complétion : skill `unlazy` (https://github.com/Leonxlnx/unlazy, commit `1667149`,
   à installer dans `~/.claude/skills/unlazy`).
   - Ledger : `.unlazy/part1/GATES.md`.
@@ -83,26 +85,74 @@ bun run check      # astro check (typage)
 bun run validate   # rapport d'import CSV, exit 1 si une ligne est rejetée
 bun test
 bun run build
+bun run e2e        # build + Playwright : projet "static" (dist/ seul) et "live" (service d'ingestion)
+bun run dev:live   # build + service d'ingestion sur un volume jetable, http://127.0.0.1:4322
+                   # (jeton : dev-token-not-for-production)
+bun run import --data-dir <vol> <csv|dossier>   # import en ligne de commande (verrou du volume)
+bun run screenshots <url> [jeton]               # captures du README, sur un dev:live neuf
+bun run data-report --base <dir> --head data   # rapport Markdown d'import (posté par la CI)
 ```
+
+Premier lancement e2e sur une machine : `bunx playwright install chromium`, plus les bibliothèques
+système (`sudo env "PATH=$PATH" ./node_modules/.bin/playwright install-deps chromium`). Les tests
+e2e s'appellent `*.e2e.ts` pour que `bun test` (qui prend aussi `*.spec.ts`) ne les lance pas.
 
 ## Architecture
 
-- **Le build est l'automatisation.**
+- **Données découplées du build** (`docs/DEPLOY.md`). Le service `server/` (Bun) valide et
+  publie les CSV fournisseurs dans un volume : API `POST /api/imports` (jeton), dossier
+  `inbox/` surveillé, releases atomiques (`current` → `releases/<id>`), historique, garde-fou
+  (`src/lib/guard.ts`), webhook. Le front lit `/data/*.json` et retombe sur l'instantané du
+  build (`/catalog.json`) si le service est absent. Le cœur pur d'un import est
+  `src/lib/release.ts` (`planImport`), partagé par le serveur et les tests.
+- **Le build reste l'instantané de référence.**
   - `src/lib/load.ts` lit `data/*.csv` ;
   - `src/lib/catalog.ts` valide chaque ligne avec zod et produit un rapport qualité ;
   - `src/lib/stats.ts` calcule les stats avec des fonctions pures ;
-  - `src/lib/filters.ts` applique les filtres.
+  - `src/lib/filters.ts` applique les filtres et les (dé)code depuis l'URL ;
+  - `src/lib/compare.ts` : forfaits identiques (destination, data, durée), écarts de prix,
+    victoires par fournisseur, prime 5G, offres dominées ;
+  - `src/lib/audit.ts` : contrôles métier non bloquants (doublons, prix atypiques, incohérences
+    de gamme) ;
+  - `src/lib/finder.ts` + `regions.ts` : simulateur « quelle eSIM pour mon voyage » ;
+  - `src/lib/insights.ts` : constats « À retenir » générés depuis les stats ;
+  - `src/lib/diff.ts`, `import-preview.ts`, `report.ts` : diff entre deux imports, aperçu d'import
+    côté navigateur, rapport Markdown de PR ;
+  - `src/lib/export.ts` (CSV au format fournisseur) et `sample.ts` (fichier d'exemple déterministe).
 - **Le HTML est rendu au build** avec tous les KPI. Chaque chiffre porte `data-kpi`/`data-value`
   pour être vérifiable par une machine.
-- **L'îlot `src/components/Dashboard.tsx`** charge `/catalog.json` et recalcule tout avec le même
-  `computeStats` à chaque changement de filtre.
-- **Endpoints statiques** : `/catalog.json`, `/stats.json`, `/version.json` (sha du build, utilisé
-  par la CI pour vérifier le déploiement).
+- **L'îlot `src/components/Dashboard.tsx`** charge les données en direct (`src/lib/runtime.ts` :
+  `/data/version.json`, puis `catalog` et `changes`) ou, à défaut, `/catalog.json`, et
+  recalcule tout avec le même `computeStats` à chaque changement de filtre. Les filtres
+  vivent dans l'URL (lien partageable). Les contrôles qualité sont recalculés côté client.
+- **Pages** : `/` vue d'ensemble (KPI 1 à 6, « À retenir », dernier import, cartes vers les
+  sous-pages), `/analyse` (point 7, économies), `/offres` (tableau, export, simulateur),
+  `/qualite` (contrôles, choix assumés), `/import`. Un seul îlot `Dashboard` avec une prop
+  `view` ; props de build partagées dans `src/lib/page-props.ts` ; les liens marqués
+  `data-keep-filters` reprennent les filtres de l'URL.
+- **Page `/import`** (`ImportPreview.tsx`) : glisser-déposer d'un CSV, validé et comparé au
+  catalogue dans le navigateur avec le même code que le build, puis bouton « Publier » vers
+  le service d'ingestion.
+- **DA MyBestSim** (relevée sur mybestsim.com le 26/10/2026) : Poppins auto-hébergée
+  (`@fontsource/poppins`), bleu `#007bff`, encre `#0f172a`, filtres en pastilles, cartes
+  blanches arrondies, CTA rouge `#de1414`, badges jaunes `#ffcc00`. Clair par défaut même si
+  l'OS est en sombre ; sombre bleu nuit en option (`ThemeToggle.astro`, `data-theme`).
+- **Endpoints statiques** : `/catalog.json`, `/stats.json` (avec `market` et `audit`),
+  `/version.json` (sha du build, utilisé par la CI pour vérifier le déploiement),
+  `/exemple-import.csv` (avec 2 lignes invalides), `/exemple-import-valide.csv` (publiable),
+  `/data/version.json` (témoin `{"live": false}` pour l'hébergement statique, masqué par
+  Caddy en production).
 - **Déploiement** :
-  - `Dockerfile` : build avec Bun, puis `caddy:2.11-alpine` sert `dist/` (`docker/Caddyfile`) ;
-  - la CI (`.github/workflows/ci.yml`) lance lint, check, validate, test, build et le build
-    Docker à chaque PR ;
-  - sur `main`, elle pousse l'image `ghcr.io/eyjvw/mybestsim-dashboard` (tags `latest` et sha) ;
+  - `Dockerfile` à deux cibles : `web` (`caddy:2.11-alpine` sert `dist/`, `/data` et route
+    `/api`, voir `docker/Caddyfile`) et `ingest` (Bun, `server/main.ts`) ; services d'exemple
+    dans `deploy/docker-compose.yml` ;
+  - la CI (`.github/workflows/ci.yml`) ignore `data/**`, `docs/**` et le Markdown ; à chaque PR
+    elle lance lint, check, validate, test, build, e2e (image Playwright) et les deux
+    builds Docker ; au push sur `main`, pas de second e2e ;
+  - `.github/workflows/data-report.yml` poste (ou met à jour) un rapport d'import sur chaque PR
+    qui touche `data/` ; Dependabot (`.github/dependabot.yml`) couvre bun, actions et docker ;
+  - sur `main`, elle pousse `ghcr.io/eyjvw/mybestsim-dashboard` et `…-ingest` (tags `latest`
+    et sha) ;
   - Watchtower sur le VPS tire l'image `latest` ;
   - le job `verify` (attente du sha en ligne, puis smoke test) ne tourne que si la variable de
     repo `DEPLOY_ENABLED` vaut `true`.
@@ -110,6 +160,8 @@ bun run build
 ## Faits sur les données
 
 - 18 fichiers, 5 056 lignes, toutes en EUR, aucun doublon de SKU, 0 rejet.
+- Mais 219 produits identiques (même fournisseur, forfait, réseau, recharge) existent sous
+  plusieurs SKU (458 lignes), jusqu'à +46 % d'écart de prix. Ils sont comptés et signalés.
 - 653 offres « Illimité » ont `data_gb` vide. Elles sont exclues de la moyenne data et comptées à
   part.
 - Pseudo-codes de région :
@@ -137,19 +189,29 @@ bun run build
   - le €/Go médian est proche entre fournisseurs, de 2,34 à 2,93 (JamboSIM le moins cher, 4S eSIM
     le plus cher) ;
   - le prix médian de l'illimité (51,28 €) est inférieur à celui du 50 Go (58,75 €) ;
-  - les meilleurs €/Go par destination sont surtout des offres 50 Go sur 7 jours.
+  - les meilleurs €/Go par destination sont surtout des offres 50 Go sur 7 jours ;
+  - 1 113 forfaits, dont 1 033 vendus par au moins deux fournisseurs ; plus gros écart : Europe
+    illimité 30 j, 94,26 € (Ubigi) contre 154,63 € (aloSIM) ;
+  - la 5G ne coûte rien de plus (ratio médian 5G/4G : 1,003 sur 795 forfaits) ;
+  - 1 836 offres seulement ne sont battues par aucune autre à la même destination ;
+  - contrôles : 8 prix atypiques (≥ 25 % de la médiane du forfait), 351 offres incohérentes
+    dans la gamme de leur fournisseur.
 
 ## État au 26/10/2026
 
-- `main` :
-  - le commit initial plus les PR #1 (catalog), #2 (ci), #3 (stats) et #4 (dashboard), auxquels
-    s'ajoute cette PR ;
-  - CI verte et image publiée sur GHCR (package **privé** pour l'instant).
-- Gates unlazy : G0 à G3 sont MET ; G4 à G8 ne le sont pas (repo final, VPS, live, test
-  navigateur en ligne, README).
+- `main` : PR #1 à #5 (V1), puis #7 (Bun 1.4.4), #8 (logique métier), #9 (service
+  d'ingestion), #10 (UI : comparateur, sous-pages, données live, DA MyBestSim), #11 (CI :
+  Playwright, smoke des conteneurs, pipeline allégé) et la PR docs (README, DEPLOY, ledgers).
+  CI verte ; deux images sur GHCR (`mybestsim-dashboard`, `mybestsim-dashboard-ingest`),
+  packages **privés** pour l'instant.
+- PR #6 (import en SSR + SQLite, autre session) : fermée au profit de #9 ; ses meilleures idées
+  ont été reprises (rate-limit, `unchanged`, CLI, smoke des conteneurs).
+- Gates unlazy : v2, v3-da, v4-runtime-data et v5-pages-readme sont ALL MET ; part1 G0 à
+  relancer (chemin du linter rendu portable), G4 à G8 attendent le repo final et le déploiement.
 - Le site n'est **pas encore déployé**. Le DNS `mybestsim.sbonneau.xyz` ne résolvait pas encore le
   26/10. L'utilisateur doit ajouter l'enregistrement A `mybestsim` vers `51.210.7.117` chez
   Namecheap.
+- Reste à faire : bac à sable public de démo, déploiement, partie 2 (article SEO), repo final.
 
 ## Prochaines étapes
 
@@ -159,7 +221,9 @@ bun run build
    package privé d'`eyjvw`.
    - Recommandé : passer le package en public. Le repo, lui, reste privé.
    - Autre option : donner l'accès en lecture à `vynq-studio`.
-2. **VPS** (`ssh -i ~/.ssh/id_ed25519 debian@51.210.7.117`), avec accord à chaque étape :
+   Il y a maintenant deux packages : `mybestsim-dashboard` et `mybestsim-dashboard-ingest`.
+2. **VPS** (`ssh -i ~/.ssh/id_ed25519 debian@51.210.7.117`), avec accord à chaque étape.
+   Détail des services, du volume et des variables dans `docs/DEPLOY.md` :
    1. Sauvegarder `~/infra/caddy/Caddyfile` en `Caddyfile.before-mybestsim`, et
       `~/infra/docker-compose.yml` en `docker-compose.yml.before-mybestsim`.
    2. Dans le compose, ajouter le service `mybestsim` :
@@ -178,7 +242,9 @@ bun run build
       - `-Server`.
    4. Lancer `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`, puis recharger
       Caddy.
-   5. Lancer `docker compose up -d mybestsim`.
+   5. Créer `~/infra/.env.mybestsim` (`INGEST_TOKEN` via `openssl rand -hex 32`, `WEBHOOK_URL`
+      facultatif), ajouter `mybestsim-ingest` et le volume `mybestsim-data`
+      (`deploy/docker-compose.yml`), puis lancer `docker compose up -d mybestsim-ingest mybestsim`.
 3. **Activer le job `verify`** : `gh variable set DEPLOY_ENABLED --body true`.
 4. **Vérifier** : gates G5 et G6 (`.unlazy/part1/checks/verify-live.mjs`), puis G7 à la main dans
    un navigateur sur l'URL en ligne.
@@ -215,5 +281,6 @@ git clone git@github.com:eyjvw/MyBestSim-Dashboard.git && cd MyBestSim-Dashboard
 bun install && bun run validate && bun test && bun run dev
 ```
 
-Côté Claude Code, il faut aussi installer la skill `unlazy` (voir plus haut) et le MCP `magic`
-pour le frontend. La skill `dataviz` est déjà intégrée à Claude Code.
+Côté Claude Code, il faut aussi installer la skill `unlazy` (voir plus haut). La skill `dataviz`
+est déjà intégrée à Claude Code. Pour l'e2e : `bunx playwright install chromium` et les
+bibliothèques système (voir « Commandes »).
