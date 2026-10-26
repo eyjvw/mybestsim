@@ -1,0 +1,59 @@
+---
+interface Props {
+  unlimited: number;
+  /** Offers priced exactly at the 100 € threshold. */
+  atThreshold: number;
+}
+
+const { unlimited, atThreshold } = Astro.props;
+
+const decisions = [
+  {
+    title: "Les offres illimitées sont exclues de la moyenne de data",
+    body: `${unlimited} offres « Illimité » n'ont pas de volume (data_gb vide). Leur attribuer une valeur arbitraire fausserait la moyenne : elles sont exclues du calcul et leur nombre est affiché à côté du résultat.`,
+  },
+  {
+    title: "« Plus de 100 € » s'entend au sens strict",
+    body:
+      atThreshold === 0
+        ? "Une offre à exactement 100,00 € ne serait pas comptée. Aucune offre du catalogue actuel n'est à ce prix exact : le choix ne change pas le résultat aujourd'hui."
+        : `Les ${atThreshold} offres à exactement 100,00 € ne sont pas comptées.`,
+  },
+  {
+    title: "EU, AS, NA et WW sont des régions, pas des pays",
+    body: "Ces codes désignent des forfaits multi-pays (Europe, Asie, Amérique du Nord, Monde). AS n'est pas les Samoa américaines et NA n'est pas la Namibie. Ils sont comptés à part dans la couverture et filtrables via « Zone ».",
+  },
+  {
+    title: "Les prix sont pris tels quels, en euros",
+    body: "Tous les fichiers sont en EUR. Une ligne dans une autre devise serait rejetée et signalée plutôt que convertie avec un taux de change inventé.",
+  },
+  {
+    title: "Le rapport qualité/prix utilise la médiane du prix au Go",
+    body: "Le prix au Go n'a de sens que pour un volume chiffré. La médiane résiste mieux que la moyenne aux forfaits extrêmes (1 Go très cher au Go, 50 Go très bon marché).",
+  },
+  {
+    title: "Rien n'est corrigé en silence",
+    body: "Chaque ligne est validée (colonnes, types, devise, réseau, cohérence volume/libellé, SKU unique). Une ligne invalide est écartée et listée dans le rapport de qualité, et la CI bloque le déploiement.",
+  },
+];
+---
+
+<section id="decisions" aria-labelledby="decisions-title" class="scroll-mt-28">
+  <h2 id="decisions-title" class="text-lg font-semibold tracking-tight">Choix assumés</h2>
+  <p class="mt-1 max-w-3xl text-sm text-ink-2">
+    Le sujet laisse quelques points ouverts. Voici comment je les ai tranchés, et pourquoi.
+  </p>
+  <ol class="mt-4 grid gap-3 md:grid-cols-2">
+    {
+      decisions.map((d, i) => (
+        <li class="rounded-xl border border-line bg-surface p-4">
+          <p class="flex gap-2 text-sm font-semibold">
+            <span class="text-ink-3 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+            {d.title}
+          </p>
+          <p class="mt-1.5 pl-7 text-sm leading-relaxed text-ink-2">{d.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
