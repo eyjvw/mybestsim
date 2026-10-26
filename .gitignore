@@ -13,6 +13,10 @@ dist/
 *.log
 .DS_Store
 
+# e2e
+playwright-report/
+test-results/
+
 # local only: brief, raw archive, completion ledgers
 *.pdf
 *.zip

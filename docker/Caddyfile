@@ -1,6 +1,6 @@
 # Serves the built site inside the container. TLS and security headers are handled by
 # the reverse proxy in front of it. Live data comes from the ingest service's volume,
-# mounted read-only on /data; publishing goes to the ingest container.
+# mounted read-only on /live; publishing goes to the ingest container.
 {
 	admin off
 	auto_https off
@@ -22,9 +22,10 @@
 		reverse_proxy {$INGEST_UPSTREAM:ingest:3000}
 	}
 
-	# Live data: the current release of the volume, always revalidated.
+	# Live data: the current release of the volume (mounted read-only on /live, since /data is
+	# Caddy's own storage in this image), always revalidated.
 	handle_path /data/* {
-		root * /data/current
+		root * /live/current
 		header Cache-Control "no-cache"
 		file_server
 	}

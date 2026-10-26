@@ -8,3 +8,6 @@ docs
 *.pdf
 *.zip
 *.md
+e2e
+playwright-report
+test-results

@@ -6,16 +6,28 @@ services:
     restart: unless-stopped
     expose: ["80"]
     volumes:
-      - mybestsim-data:/data:ro
+      - mybestsim-data:/live:ro
     depends_on: [mybestsim-ingest]
     environment:
       INGEST_UPSTREAM: mybestsim-ingest:3000
     labels:
       com.centurylinklabs.watchtower.enable: "true"
 
+  # A new volume belongs to root and the ingest service runs as `bun`: hand it over once.
+  mybestsim-data-init:
+    image: ghcr.io/eyjvw/mybestsim-dashboard-ingest:latest
+    user: "0"
+    entrypoint: ["chown", "bun:bun", "/data"]
+    volumes:
+      - mybestsim-data:/data
+    restart: "no"
+
   mybestsim-ingest:
     image: ghcr.io/eyjvw/mybestsim-dashboard-ingest:latest
     restart: unless-stopped
+    depends_on:
+      mybestsim-data-init:
+        condition: service_completed_successfully
     expose: ["3000"]
     volumes:
       - mybestsim-data:/data

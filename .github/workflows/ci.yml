@@ -1,14 +1,27 @@
 name: CI
 
-# Every PR: lint, typecheck, data validation, tests, build and a Docker build.
-# Every push to main: same checks, then publish the image to GHCR. Watchtower on
-# the VPS pulls the new `latest` within a minute; `verify` waits until the live
-# site reports this exact commit, so a deploy that never lands turns CI red.
-# `verify` runs once the repository variable DEPLOY_ENABLED is set to "true".
+# Code only. Supplier data no longer goes through CI: the ingest service validates and
+# publishes it at runtime (docs/DEPLOY.md), so data-only changes trigger no build here
+# (data PRs still get the cheap report of data-report.yml).
+#
+# Every PR: lint, typecheck, data validation, unit tests, build, browser tests, and the
+# two images built and smoke-tested together (publish through Caddy, non-root, data kept
+# across a restart). Every push to main: the quick checks, then both images go to GHCR
+# (browser and container tests already ran on the PR). Watchtower on the VPS pulls `latest`;
+# `verify` waits until the live site reports this commit. `verify` runs once the
+# repository variable DEPLOY_ENABLED is set to "true".
 on:
   pull_request:
+    paths-ignore:
+      - "data/**"
+      - "docs/**"
+      - "**/*.md"
   push:
     branches: [main]
+    paths-ignore:
+      - "data/**"
+      - "docs/**"
+      - "**/*.md"
   workflow_dispatch:
 
 permissions:
@@ -41,24 +54,121 @@ jobs:
       - name: Build
         run: bun run build
 
+  e2e:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The official Playwright image ships Chromium and its system libraries for this exact
+    # version: installing them with apt on the runner took 14 minutes.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      # setup-bun unpacks a zip; the image has everything else.
+      - name: Install unzip
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends unzip
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      # Builds the site, then runs the Playwright suite against the static build and
+      # against the ingest service (publish from /import, dashboard updates live).
+      - name: Browser tests
+        run: bun run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  container:
+    if: github.event_name != 'push'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the ingest image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: ingest
+          load: true
+          tags: mbs-ingest:ci
+          cache-from: type=gha,scope=ingest
+          cache-to: type=gha,mode=max,scope=ingest
+      - name: Build the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: web
+          load: true
+          build-args: GIT_SHA=${{ github.sha }}
+          tags: mbs-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+      # Same wiring as deploy/docker-compose.yml: shared volume, read-only for web.
+      - name: Smoke test web + ingest
+        env:
+          INGEST_TOKEN: ci-${{ github.run_id }}-0123456789abcdef
+        run: |
+          docker network create mbs
+          docker volume create mbs-data
+          # A new volume belongs to root and the service runs as `bun`: hand it over once,
+          # like the init service of deploy/docker-compose.yml.
+          docker run --rm --user 0 --entrypoint chown -v mbs-data:/data mbs-ingest:ci bun:bun /data
+          start_ingest() {
+            docker run -d --name ingest --network mbs -e INGEST_TOKEN -v mbs-data:/data mbs-ingest:ci
+          }
+          wait_ready() {
+            for i in $(seq 1 40); do
+              curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1 && return
+              sleep 1
+            done
+            docker logs ingest; docker logs web; exit 1
+          }
+          start_ingest
+          docker run -d --name web --network mbs -p 8080:80 -e INGEST_UPSTREAM=ingest:3000 \
+            -v mbs-data:/live:ro mbs-web:ci
+          wait_ready
+          [ "$(docker exec ingest id -u)" != 0 ] || { echo "::error::ingest runs as root"; exit 1; }
+          docker exec ingest test -w /data || { echo "::error::ingest cannot write /data"; exit 1; }
+          node scripts/smoke.mjs http://127.0.0.1:8080 "$INGEST_TOKEN"
+          before=$(curl -fsS http://127.0.0.1:8080/api/health | jq -r .importId)
+          docker rm -f ingest && start_ingest && wait_ready
+          after=$(curl -fsS http://127.0.0.1:8080/api/health | jq -r .importId)
+          [ "$before" = "$after" ] || { echo "::error::release lost across restart ($before -> $after)"; exit 1; }
+          echo "Release $after kept across an ingest restart"
+
   image:
     needs: check
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        include:
+          - target: web
+            suffix: ""
+          - target: ingest
+            suffix: "-ingest"
     steps:
       - uses: actions/checkout@v4
 
       # Image names must be lowercase, the repository name may not be.
       - name: Image name
         id: image
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}${{ matrix.suffix }}" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
-        if: github.event_name == 'push'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -67,7 +177,8 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name == 'push' }}
+          target: ${{ matrix.target }}
+          push: true
           platforms: linux/amd64
           build-args: GIT_SHA=${{ github.sha }}
           tags: |
@@ -76,8 +187,8 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
 
   verify:
     needs: image
@@ -99,3 +210,5 @@ jobs:
         run: |
           curl -fsS "$SITE_URL/" | grep -q 'data-kpi="total"'
           curl -fsS "$SITE_URL/stats.json" | jq -e '.total > 0 and (.quality.rejected | length) == 0'
+          curl -fsS "$SITE_URL/api/health" | jq -e '.ok == true and (.importId | length) > 0'
+          curl -fsS "$SITE_URL/data/version.json" | jq -e '(.files | length) > 0'
