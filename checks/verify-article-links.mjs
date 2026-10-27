@@ -20,20 +20,29 @@ if (links.length < 15) fail(`only ${links.length} external links`);
 const UA =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 const broken = [];
+const check = async (url) => {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(url, {
+        headers: { "User-Agent": UA, "Accept-Language": "fr-FR,fr;q=0.9" },
+        redirect: "follow",
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (r.status < 400) return;
+      if (attempt) broken.push(`${r.status} ${url}`);
+    } catch (e) {
+      if (attempt) broken.push(`${e.name} ${url}`);
+    }
+  }
+};
+// Polite: one request at a time per site, with a pause. A burst of 17 parallel requests to
+// mybestsim.com got this machine's address blocked by the site's firewall.
+const byHost = Map.groupBy(links, (l) => new URL(l).host);
 await Promise.all(
-  links.map(async (url) => {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const r = await fetch(url, {
-          headers: { "User-Agent": UA, "Accept-Language": "fr-FR,fr;q=0.9" },
-          redirect: "follow",
-          signal: AbortSignal.timeout(30_000),
-        });
-        if (r.status < 400) return;
-        if (attempt) broken.push(`${r.status} ${url}`);
-      } catch (e) {
-        if (attempt) broken.push(`${e.name} ${url}`);
-      }
+  [...byHost.values()].map(async (urls) => {
+    for (const url of urls) {
+      await check(url);
+      await new Promise((r) => setTimeout(r, 750));
     }
   }),
 );

@@ -1,6 +1,7 @@
 // Regenerates the README screenshots from a fresh live site (`bun run dev:live`): /import first,
-// analysing the example file, then, with a token, publishes the valid example through the API so
-// the home page shows "Depuis le dernier import", then the other pages.
+// analysing the example file, then publishes the valid example through the API (with the token
+// for production, anonymously for the sandbox) so the home page and /?bac=1 show "Depuis le
+// dernier import", then the other pages and the article.
 // Usage: node scripts/screenshots.mjs <base-url> [publish-token] [out-dir=docs/screenshots]
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -20,6 +21,8 @@ const shots = [
   { name: "analyse", path: "/analyse", width: 1440, height: 1700 },
   { name: "offres", path: "/offres", width: 1440, height: 1500 },
   { name: "qualite", path: "/qualite", width: 1440, height: 1500 },
+  { name: "bac-a-sable", path: "/?bac=1", width: 1440, height: 1100 },
+  { name: "article", path: "/blog/internet-croisiere-esim/", width: 1440, height: 1500 },
 ];
 const browser = await chromium.launch();
 for (const s of shots) {
@@ -43,6 +46,15 @@ for (const s of shots) {
       body: csv,
     });
     console.log(`published the valid example: ${r.status}`);
+  }
+  if (s.sample) {
+    const csv = await (await fetch(`${base}/exemple-import-valide.csv`)).text();
+    const r = await fetch(`${base}/api/sandbox/imports?file=airalo.csv`, {
+      method: "POST",
+      headers: { "Content-Type": "text/csv" },
+      body: csv,
+    });
+    console.log(`published the valid example to the sandbox: ${r.status}`);
   }
 }
 await browser.close();

@@ -67,6 +67,10 @@ lien partagé rouvre la même vue, et la sélection suit le visiteur d'une page 
 | --- | --- | --- |
 | ![Page qualité](docs/screenshots/qualite.png) | ![Accueil sur mobile](docs/screenshots/accueil-mobile.png) | ![Accueil en sombre](docs/screenshots/accueil-sombre.png) |
 
+Les captures sont prises sur un serveur neuf, juste après la publication du fichier d'exemple
+(`bun run screenshots`) : le catalogue y compte donc 5 057 offres, et l'accueil montre l'encart
+« Depuis le dernier import ».
+
 ## Au-delà du sujet
 
 - **Constats « À retenir »**, calculés sur la sélection en cours. Chacun n'apparaît que si les
@@ -83,8 +87,11 @@ lien partagé rouvre la même vue, et la sélection suit le visiteur d'une page 
   - 219 produits identiques vendus sous plusieurs SKU par un même fournisseur ;
   - 8 prix atypiques ;
   - 351 offres incohérentes dans la gamme de leur propre fournisseur.
-- **Page `/import`** : un fichier déposé est validé et comparé au catalogue en ligne dans le
-  navigateur (lignes rejetées, offres ajoutées ou retirées, prix modifiés), puis publié.
+- **Page `/import`** : un fichier déposé est validé et comparé au catalogue dans le navigateur
+  (lignes rejetées, offres ajoutées ou retirées, prix modifiés), puis publié.
+- **Bac à sable public** : n'importe qui peut publier un fichier sans jeton et voir le tableau de
+  bord se mettre à jour sans rebuild (`?bac=1`), sans jamais toucher au vrai catalogue. Détail plus
+  bas.
 - **Identité MyBestSim** relevée sur mybestsim.com : police Poppins hébergée sur le site, bleu
   `#007bff`, filtres en pastilles, cartes arrondies, bouton principal rouge. Thème clair par
   défaut, sombre bleu nuit en option.
@@ -101,7 +108,7 @@ quotidien ne reconstruit donc jamais le site.
 flowchart LR
   subgraph VPS
     proxy["Caddy du VPS<br/>TLS, en-têtes"] --> web["web : Caddy<br/>site statique"]
-    web -- "/data/*" --> vol[("volume<br/>releases/id<br/>current")]
+    web -- "/data/*, /sandbox/data/*" --> vol[("volume<br/>releases/id, current<br/>sandbox/")]
     web -- "/api/*" --> ingest["ingest : Bun<br/>validation, garde-fou"]
     ingest --> vol
   end
@@ -116,8 +123,9 @@ flowchart LR
 - **`server/`** est le service d'ingestion. Il valide un import, puis écrit une release complète
   dans un dossier caché et bascule le lien `current` vers elle d'un coup : un lecteur ne voit jamais
   un catalogue à moitié écrit. Il garde l'historique, applique le garde-fou et notifie un webhook.
-- **Le front** lit `/data/*.json` (données en direct). Sans service, sur un hébergement statique par
-  exemple, il retombe sur l'instantané du build, sans erreur dans la console.
+- **Le front** lit `/data/*.json` (données en direct), ou `/sandbox/data/*.json` avec `?bac=1`.
+  Sans service, sur un hébergement statique par exemple, il retombe sur l'instantané du build, sans
+  erreur dans la console.
 
 Détail du volume, des variables et du déploiement : [docs/DEPLOY.md](docs/DEPLOY.md).
 
@@ -163,6 +171,8 @@ complet, le service tient un second catalogue, **le bac à sable**, dans le mêm
 - garde-fous propres : 20 publications par heure et par client, aucune notification à l'équipe, et
   **remise à zéro chaque nuit à 3 h** (heure de Paris) sur le jeu de fichiers initial ;
 - la production n'est jamais touchée : `checks/verify-sandbox.mjs` le vérifie octet pour octet.
+
+![Le tableau de bord du bac à sable, après une publication sans jeton](docs/screenshots/bac-a-sable.png)
 
 ## Choix assumés
 
@@ -222,22 +232,27 @@ est une page du même site, rendue au build. La démarche complète est dans
 cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis les CSV.
 `checks/verify-article-links.mjs` vérifie que chaque lien externe répond.
 
+![L'article en pleine largeur, avec le sommaire qui suit la lecture](docs/screenshots/article.png)
+
 ## Qualité et tests
 
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
 | Unitaire | `bun test`, 180 tests dans 32 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 71 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Navigateur | Playwright, 71 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
 | Oracles | 21 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 16 à chaque PR (`bun run checks`) |
-| Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy ; processus non-root ; données conservées après redémarrage |
+| Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 
 Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
 
 - un oracle relance le test de débordement mobile sur l'ancienne mise en page, où il doit échouer
   (172 et 202 px de trop à 390 et 360 px) ;
 - l'oracle métier, nourri d'un chiffre faussé d'une seule unité, l'a refusé ;
-- le validateur Caddy doit rejeter une configuration volontairement cassée.
+- le validateur Caddy doit rejeter une configuration volontairement cassée ;
+- l'oracle de l'article refuse un prix décalé d'un centime et le retrait du `noindex`, celui des
+  liens refuse une URL inventée ;
+- le test axe de `/import` en mode live échoue sur la version d'avant la correction de contraste.
 
 ## CI/CD
 
@@ -248,7 +263,7 @@ flowchart LR
   check --> ctr["images web + ingest<br/>smoke test"]
   pr -. "data/** seul" .-> report["rapport d'import<br/>en commentaire"]
   main["merge sur main"] --> img["images GHCR<br/>latest + sha"]
-  img --> wt["Watchtower<br/>sur le VPS"] --> verify["verify : sha en ligne,<br/>smoke test"]
+  img --> wt["Watchtower<br/>sur le VPS"] --> verify["verify : sha en ligne,<br/>smoke test, bac à sable"]
 ```
 
 - Le job `check` lance aussi les oracles indépendants de `checks/` après le build.
@@ -279,10 +294,12 @@ bun run lint         # Biome
 bun run check        # typage (astro check)
 bun run validate     # validation des CSV de data/
 bun test             # tests unitaires
-bun run checks       # oracles indépendants, après un build (--local : ceux qui demandent Caddy, dataviz)
+bun run checks       # oracles indépendants, après un build (--local : Caddy, dataviz, liens de l'article)
+bun run checks:live  # le site en ligne, après un déploiement
 bun run e2e          # build + Playwright (installer d'abord Chromium : bunx playwright install chromium)
 bun run import --data-dir /tmp/vol data/airalo.csv      # import en ligne de commande
 bun run screenshots http://127.0.0.1:4322 <jeton>       # régénère les captures de ce README
+bun scripts/serp-measure.ts                            # remesure les pages concurrentes de l'article
 ```
 
 Avec `dev:live`, le jeton de publication est `dev-token-not-for-production`.
@@ -293,9 +310,9 @@ Avec `dev:live`, le jeton de publication est `dev-token-not-for-production`.
 data/                 CSV fournisseurs de référence (jeu initial du volume)
 src/lib/              logique métier pure et testée, partagée partout
 src/components/       îlots React et composants Astro
-src/pages/            pages (/, /analyse, /offres, /qualite, /import) et endpoints JSON/CSV
-server/               service d'ingestion (API, inbox, releases, webhook, sécurité)
-scripts/              validation, rapport d'import, CLI d'import, smoke test, captures
+src/pages/            pages (/, /analyse, /offres, /qualite, /import, /blog/…) et endpoints JSON/CSV
+server/               service d'ingestion (API, inbox, releases, bac à sable, webhook, sécurité)
+scripts/              validation, rapport d'import, CLI d'import, smoke test, captures, mesure SEO
 e2e/                  tests Playwright
 docker/, Dockerfile   images web (Caddy) et ingest (Bun)
 deploy/               services Docker Compose et bloc Caddy du VPS
@@ -345,10 +362,15 @@ qui engagent le projet sont les miens :
 - reprendre la direction artistique de mybestsim.com ;
 - élargir la mise en page, puis découper l'accueil en sous-pages ;
 - découpler les données du build, pour ne pas consommer de minutes de CI à chaque import ;
-- garder cette architecture plutôt qu'une autre implémentation, détaillée plus bas.
+- garder cette architecture plutôt qu'une autre implémentation, détaillée plus bas ;
+- recréer le dépôt avec un historique propre, et garder l'URL `mybestsim.sbonneau.xyz` ;
+- ouvrir un bac à sable public, pour que le parcours d'import se teste sans jeton ;
+- passer l'article en pleine largeur, comme le reste du site.
 
 J'ai aussi relevé des défauts que l'agent n'avait pas vus, comme le curseur qui ne se changeait
-pas en main sur les boutons.
+pas en main sur les boutons, ou l'article enfermé dans une colonne étroite. C'est aussi à ma
+demande que l'agent a audité le site en ligne, ce qui a révélé le défaut d'accessibilité de
+`/import` décrit plus bas.
 
 **Pour l'article**, l'agent a fait la recherche (moteur de recherche web, lecture des pages
 concurrentes et des pages de MyBestSim), écrit l'outil de mesure et rédigé le texte. Il a cherché
@@ -385,6 +407,8 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Deux sources de l'article refusaient les robots ou répondaient une fois sur deux | oracle des liens, sources remplacées par les communiqués officiels |
 | Quelques phrases de l'article affirmaient sans source (« la plupart des navires », un volume de data) | relecture phrase par phrase, reformulées ou retirées |
 | Sur `/import`, le choix du bac à sable avait un texte à 4,46:1 de contraste et un lien non souligné, invisibles pour la CI : le test axe tournait sans service d'ingestion, donc sans ce choix | audit axe du site en ligne, puis correction et test axe ajouté en mode live |
+| En mode statique, la page d'import interrogeait une API absente et laissait une erreur 404 dans la console | test e2e « zéro erreur console », puis fichier témoin servi au build |
+| Le bac à sable n'était signalé que par une petite ligne sous les indicateurs | revue des captures, bandeau ajouté en haut de page |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de
