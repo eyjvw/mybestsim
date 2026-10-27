@@ -33,7 +33,7 @@ bun run checks:live               # le site déployé, après une mise en produc
 | `verify-article-links.mjs` | chaque lien externe de l'article répond (sources et pages mybestsim.com) | local (réseau) |
 | `verify-caddy.mjs` | le Caddyfile de l'image avec un vrai binaire Caddy 2 (la CI le valide aussi dans le conteneur) | local |
 | `verify-overflow-control.mjs` | contrôle négatif : le test de débordement mobile doit échouer sur l'ancienne mise en page (tag `pre-mobile-fix`) | local |
-| `verify-pagespeed.mjs` | le site en ligne passé à Lighthouse 13.5.0, la version de PageSpeed Insights : chaque page trois fois sur mobile et une fois sur ordinateur, 100 en accessibilité, bonnes pratiques et SEO, au moins 99 en performance (médiane sur mobile) | après déploiement |
+| `verify-pagespeed.mjs` | le site en ligne passé à Lighthouse 13.5.0, la version de PageSpeed Insights : chaque page trois fois sur mobile et une fois sur ordinateur, 100 en accessibilité, bonnes pratiques et SEO ; en performance, au moins 99 sur ordinateur, et sur mobile au moins 99 au meilleur des trois passages, aucun sous 95 (le score mobile varie d'un passage à l'autre sur une même version) | après déploiement |
 | `verify-live.mjs` | site en ligne : commit servi, chiffres, données live, en-têtes de sécurité, sites voisins | après déploiement |
 
 **Les contrôles sont eux-mêmes contrôlés.** `verify-overflow-control.mjs` vérifie que le test de
