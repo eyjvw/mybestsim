@@ -126,6 +126,11 @@ flowchart LR
 - **Le front** lit `/data/*.json` (données en direct), ou `/sandbox/data/*.json` avec `?bac=1`.
   Sans service, sur un hébergement statique par exemple, il retombe sur l'instantané du build, sans
   erreur dans la console.
+- **Le premier affichage n'attend aucun script.** Chaque page arrive avec ses chiffres rendus au
+  build et sa feuille de style intégrée. L'îlot React s'hydrate juste après le premier affichage
+  (directive `client:afterpaint`, `src/directives/`). Un Web Worker (`src/workers/`) charge le
+  catalogue en direct (1 Mo) et calcule les stats et les contrôles : sur un téléphone moyen, ce
+  calcul bloquait la page 200 à 500 ms.
 
 Détail du volume, des variables et du déploiement : [docs/DEPLOY.md](docs/DEPLOY.md).
 
@@ -224,15 +229,17 @@ est une page du même site, rendue au build. La démarche complète est dans
 - **SEO technique** : title et meta description à la bonne longueur, un seul H1, canonical, Open
   Graph, JSON-LD `Article`, `FAQPage` et `BreadcrumbList`, suggestions d'images avec texte
   alternatif.
-- **Indexable, avec un sitemap.** Le sujet demande un article qui « ranke » : il est donc
-  indexable, listé dans `sitemap.xml` et annoncé par `robots.txt`. Les pages du tableau de bord, qui
-  sont une démonstration, restent en `noindex`. Le jour où MyBestSim publie l'article sur son site,
-  une seule ligne suffit pour éviter le contenu dupliqué : une balise canonical vers l'URL de
-  mybestsim.com.
+- **Tout le site est indexable, avec un sitemap.** Le sujet demande un article qui « ranke » : il
+  est indexable, listé dans `sitemap.xml` et annoncé par `robots.txt`, comme les pages du tableau de
+  bord (une page en `noindex` plafonne à 66 en SEO dans PageSpeed). Seule la page 404 reste hors des
+  moteurs. Le jour où MyBestSim publie l'article sur son site, une seule ligne suffit pour éviter le
+  contenu dupliqué : une balise canonical vers l'URL de mybestsim.com.
 
 `checks/verify-article.mjs` vérifie à chaque build la longueur, la structure, les balises, la
 cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis les CSV.
-`checks/verify-article-links.mjs` vérifie que chaque lien externe répond.
+`checks/verify-article-links.mjs` vérifie que chaque lien externe répond. `checks/verify-seo.mjs`
+vérifie chaque page : un seul `<main>` et un seul H1, un title et une description de bonne longueur
+et uniques, une canonical égale à sa propre URL, et sa présence dans le sitemap.
 
 ![L'article en pleine largeur, avec le sommaire qui suit la lecture](docs/screenshots/article.png)
 
@@ -241,9 +248,9 @@ cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 183 tests dans 33 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Unitaire | `bun test`, 198 tests dans 36 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
 | Navigateur | Playwright, 71 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
-| Oracles | 21 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 16 à chaque PR (`bun run checks`) |
+| Oracles | 22 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 
 Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
@@ -312,6 +319,8 @@ Avec `dev:live`, le jeton de publication est `dev-token-not-for-production`.
 data/                 CSV fournisseurs de référence (jeu initial du volume)
 src/lib/              logique métier pure et testée, partagée partout
 src/components/       îlots React et composants Astro
+src/directives/       directive d'hydratation client:afterpaint
+src/workers/          Web Worker du catalogue en direct
 src/pages/            pages (/, /analyse, /offres, /qualite, /import, /blog/…) et endpoints JSON/CSV
 server/               service d'ingestion (API, inbox, releases, bac à sable, webhook, sécurité)
 scripts/              validation, rapport d'import, CLI d'import, smoke test, captures, mesure SEO
@@ -415,6 +424,11 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Chaque clic sur « Offres » ou « Analyse » passait par une redirection vers `/offres/` (200 à 760 ms) | audit Lighthouse, puis `try_files` dans le Caddy de l'image |
 | La validation zod tentait un `eval`, bloqué par la CSP, ce qui laissait un signalement dans la console de Chrome | audit Lighthouse, puis le mode `jitless` de zod |
 | Le nom lu par les lecteurs d'écran pour le logo ne contenait pas son texte visible, et `/import` sautait du titre H1 au H3 | audit Lighthouse, puis corrigés |
+| Aucune page n'avait de repère `<main>` pour les lecteurs d'écran | PageSpeed Insights (Lighthouse 13), puis oracle SEO sur chaque page |
+| Chaque page du tableau de bord embarquait 480 Ko de données pour l'îlot, dont 300 Ko de contrôles qu'elle n'affichait pas | audit PageSpeed, puis un résumé des contrôles de quelques Ko |
+| Sur mobile, le chargement du catalogue en direct bloquait la page 200 à 500 ms | mesure Lighthouse avec et sans ce chargement (TBT de 0 à 44 ms sans lui), puis calcul dans un Web Worker |
+| Les scripts de l'îlot se téléchargeaient avant le premier affichage, qui n'en a pas besoin, et retardaient le plus grand élément de la page | audit PageSpeed, puis hydratation après le premier affichage ; un premier essai avec `requestAnimationFrame` partait trop tôt, avant que l'image soit à l'écran |
+| Sur `/qualite`, la phrase d'introduction changeait à l'arrivée des données en direct et décalait la page (0,10) | audit PageSpeed, puis une phrase identique dans les deux cas |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de

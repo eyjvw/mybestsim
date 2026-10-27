@@ -1,4 +1,4 @@
-import { auditCatalog } from "./audit";
+import { auditCatalog, summarizeAudit } from "./audit";
 import { BUILD } from "./build-info";
 import { filterOptions } from "./filters";
 import { loadCatalog } from "./load";
@@ -13,7 +13,7 @@ export function dashboardProps() {
     initialRows: sortProducts(products, "price", "asc").slice(0, 15),
     options: filterOptions(products),
     initialQuality: quality,
-    initialAudit: auditCatalog(products),
+    initialAudit: summarizeAudit(auditCatalog(products)),
     builtAt: BUILD.builtAt,
   };
 }

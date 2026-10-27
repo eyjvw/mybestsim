@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { buildSitemap, INDEXED_PAGES } from "./sitemap";
+import { ARTICLE } from "./cruise";
+import { SITE_NAV } from "./page-props";
+import { buildSitemap, canonicalPath, sitemapPages } from "./sitemap";
 
 describe("buildSitemap", () => {
   const site = "https://mybestsim.sbonneau.xyz";
@@ -18,9 +20,32 @@ describe("buildSitemap", () => {
     const xml = buildSitemap([{ path: "/a?x=1&y=2", lastmod: "2026-10-27" }], site);
     expect(xml).toContain("<loc>https://mybestsim.sbonneau.xyz/a?x=1&amp;y=2</loc>");
   });
+});
 
-  test("indexes only the article, never a dashboard page", () => {
-    expect(INDEXED_PAGES.map((p) => p.path)).toEqual(["/blog/internet-croisiere-esim/"]);
-    for (const p of INDEXED_PAGES) expect(p.lastmod).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+describe("sitemapPages", () => {
+  const pages = sitemapPages("2026-11-02T08:30:00.000Z");
+
+  test("indexes every page of the navigation, in its canonical form", () => {
+    expect(pages.map((p) => p.path)).toEqual([
+      "/",
+      "/analyse/",
+      "/offres/",
+      "/qualite/",
+      "/import/",
+      "/blog/internet-croisiere-esim/",
+    ]);
+    expect(pages).toHaveLength(SITE_NAV.length);
+  });
+
+  test("dates the dashboard pages by the build and the article by its own update", () => {
+    for (const p of pages) {
+      expect(p.lastmod).toBe(p.path === ARTICLE.path ? ARTICLE.updated : "2026-11-02");
+    }
+  });
+
+  test("canonicalPath adds the trailing slash once", () => {
+    expect(canonicalPath("/offres")).toBe("/offres/");
+    expect(canonicalPath("/offres/")).toBe("/offres/");
+    expect(canonicalPath("/")).toBe("/");
   });
 });

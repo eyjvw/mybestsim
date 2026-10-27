@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
+  AUDIT_SHOWN,
   auditCatalog,
   dominatedWithinProvider,
+  flaggedCount,
   functionalDuplicates,
   priceOutliers,
+  summarizeAudit,
 } from "./audit";
 import { product } from "./fixtures";
 import { loadCatalog } from "./load";
@@ -74,5 +77,40 @@ describe("real catalog", () => {
   test("every flagged price deviates by at least 25 %", () => {
     expect(audit.outliers.length).toBeGreaterThan(0);
     for (const o of audit.outliers) expect(Math.abs(o.deviation)).toBeGreaterThanOrEqual(0.25);
+  });
+
+  test("its summary keeps the counts and the first rows of each check", () => {
+    const s = summarizeAudit(audit);
+    expect(s.duplicates).toMatchObject({ count: 219, skus: 458 });
+    expect(s.duplicates.top).toEqual(audit.duplicates.slice(0, AUDIT_SHOWN));
+    expect(s.outliers).toMatchObject({ count: 8, top: audit.outliers.slice(0, AUDIT_SHOWN) });
+    expect(s.dominated).toMatchObject({ count: 351, top: audit.dominated.slice(0, AUDIT_SHOWN) });
+    expect(flaggedCount(s)).toBe(219 + 8 + 351);
+    // The point of the summary: a few kilobytes in each page instead of hundreds.
+    expect(JSON.stringify(s).length).toBeLessThan(JSON.stringify(audit).length / 20);
+  });
+});
+
+describe("summarizeAudit", () => {
+  test("an empty audit has zero counts and no rows", () => {
+    const s = summarizeAudit({ duplicates: [], outliers: [], dominated: [] });
+    expect(s).toEqual({
+      duplicates: { count: 0, skus: 0, top: [] },
+      outliers: { count: 0, top: [] },
+      dominated: { count: 0, top: [] },
+    });
+    expect(flaggedCount(s)).toBe(0);
+  });
+
+  test("keeps at most `shown` rows", () => {
+    const dups = functionalDuplicates([
+      product({ sku: "a-1", price: 10 }),
+      product({ sku: "a-2", price: 12 }),
+      product({ sku: "b-1", price: 10, validityDays: 30 }),
+      product({ sku: "b-2", price: 11, validityDays: 30 }),
+    ]);
+    const s = summarizeAudit({ duplicates: dups, outliers: [], dominated: [] }, 1);
+    expect(s.duplicates).toMatchObject({ count: 2, skus: 4 });
+    expect(s.duplicates.top).toHaveLength(1);
   });
 });

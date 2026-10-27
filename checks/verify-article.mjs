@@ -66,8 +66,8 @@ if (description.length < 120 || description.length > 160)
 if (html.match(/<link rel="canonical" href="([^"]+)"/)?.[1] !== CANONICAL) fail("canonical");
 if (meta("og:type") !== "article" || meta("og:url") !== CANONICAL || !meta("og:title"))
   fail("Open Graph");
-// The article is meant to be found: indexable, in the sitemap, which robots.txt announces. The
-// dashboard pages stay out of search engines.
+// The article is meant to be found: indexable, in the sitemap, which robots.txt announces
+// (checks/verify-seo.mjs holds the same rules for every page).
 if (meta("robots") !== "index, follow") fail(`article robots "${meta("robots")}"`);
 if (!readFileSync("dist/sitemap.xml", "utf8").includes(`<loc>${CANONICAL}</loc>`))
   fail("article missing from the sitemap");
@@ -77,8 +77,6 @@ if (
   )
 )
   fail("robots.txt does not announce the sitemap");
-if (!/<meta name="robots" content="noindex/.test(readFileSync("dist/index.html", "utf8")))
-  fail("the dashboard home lost its noindex");
 
 // Structured data, consistent with the visible page.
 const ld = JSON.parse(

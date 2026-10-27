@@ -1,23 +1,19 @@
-import { type Audit, OUTLIER_MIN_PEERS, OUTLIER_THRESHOLD } from "../lib/audit";
+import { type AuditSummary, OUTLIER_MIN_PEERS, OUTLIER_THRESHOLD } from "../lib/audit";
 import { formatEur, formatInt, formatPct, formatTier } from "../lib/format";
 import type { Product, QualityReport } from "../lib/types";
 import { Section } from "./Section";
 
 interface Props {
   quality: QualityReport;
-  audit: Audit;
-  /** Where the data comes from, for the intro sentence. */
-  live: boolean;
+  audit: AuditSummary;
 }
 
-const SHOWN = 5;
 const plan = (p: Product) => `${p.countryName} ${formatTier(p.dataGb)} ${p.validityDays} j`;
 const card = "min-w-0 rounded-[18px] border border-line bg-surface p-4 shadow-card";
 
 /** Schema report of the current files, plus the business checks recomputed on the live catalog. */
-export function Quality({ quality, audit, live }: Props) {
-  const dupRows = audit.duplicates.reduce((n, d) => n + d.skus.length, 0);
-  const maxDup = audit.duplicates[0];
+export function Quality({ quality, audit }: Props) {
+  const maxDup = audit.duplicates.top[0];
   const figures = [
     ["Fichiers lus", quality.files],
     ["Lignes lues", quality.rows],
@@ -27,13 +23,13 @@ export function Quality({ quality, audit, live }: Props) {
   const checks = [
     {
       id: "duplicates",
-      count: audit.duplicates.length,
+      count: audit.duplicates.count,
       title: "Doublons chez un même fournisseur",
       rule: "Même fournisseur, même forfait, même réseau et même recharge, sous plusieurs SKU.",
       summary: maxDup
-        ? `${formatInt(audit.duplicates.length)} produits apparaissent sous ${formatInt(dupRows)} SKU. Écart de prix jusqu'à ${formatPct(maxDup.ratio - 1)} pour un produit identique : un comparateur ne doit en afficher qu'un.`
+        ? `${formatInt(audit.duplicates.count)} produits apparaissent sous ${formatInt(audit.duplicates.skus)} SKU. Écart de prix jusqu'à ${formatPct(maxDup.ratio - 1)} pour un produit identique : un comparateur ne doit en afficher qu'un.`
         : "Aucun doublon.",
-      rows: audit.duplicates.slice(0, SHOWN).map((d) => ({
+      rows: audit.duplicates.top.map((d) => ({
         label: `${d.provider} · ${plan(d.sample)}`,
         value: `${formatEur(d.min)} → ${formatEur(d.max)}`,
         note: d.skus.join(", "),
@@ -41,13 +37,13 @@ export function Quality({ quality, audit, live }: Props) {
     },
     {
       id: "outliers",
-      count: audit.outliers.length,
+      count: audit.outliers.count,
       title: "Prix atypiques",
       rule: `Écart d'au moins ${formatPct(OUTLIER_THRESHOLD)} avec le prix médian du même forfait, quand ${OUTLIER_MIN_PEERS} offres ou plus le vendent.`,
-      summary: audit.outliers.length
-        ? `${formatInt(audit.outliers.length)} prix à vérifier avant publication : erreur d'import possible, ou vraie bonne affaire à mettre en avant.`
+      summary: audit.outliers.count
+        ? `${formatInt(audit.outliers.count)} prix à vérifier avant publication : erreur d'import possible, ou vraie bonne affaire à mettre en avant.`
         : "Aucun prix atypique.",
-      rows: audit.outliers.slice(0, SHOWN).map((o) => ({
+      rows: audit.outliers.top.map((o) => ({
         label: `${o.product.provider} · ${plan(o.product)}`,
         value: `${formatEur(o.product.price)} (${o.deviation > 0 ? "+" : "−"}${formatPct(Math.abs(o.deviation))})`,
         note: `médiane ${formatEur(o.median)} sur ${o.peers} offres · ${o.product.sku}`,
@@ -55,13 +51,13 @@ export function Quality({ quality, audit, live }: Props) {
     },
     {
       id: "dominated",
-      count: audit.dominated.length,
+      count: audit.dominated.count,
       title: "Offres incohérentes dans la gamme du fournisseur",
       rule: "Le même fournisseur vend, pour la même destination, une offre moins chère avec au moins autant de data, de durée, de réseau et de recharge.",
-      summary: audit.dominated.length
-        ? `${formatInt(audit.dominated.length)} offres n'ont aucune raison d'être achetées. Grille tarifaire à signaler au fournisseur, ou à masquer côté site.`
+      summary: audit.dominated.count
+        ? `${formatInt(audit.dominated.count)} offres n'ont aucune raison d'être achetées. Grille tarifaire à signaler au fournisseur, ou à masquer côté site.`
         : "Aucune incohérence.",
-      rows: audit.dominated.slice(0, SHOWN).map((d) => ({
+      rows: audit.dominated.top.map((d) => ({
         label: `${d.offer.provider} · ${d.offer.countryName} : ${formatTier(d.offer.dataGb)} ${d.offer.validityDays} j ${d.offer.network} à ${formatEur(d.offer.price)}`,
         value: `−${formatEur(d.offer.price - d.by.price)}`,
         note: `alors que ${formatTier(d.by.dataGb)} ${d.by.validityDays} j ${d.by.network} coûte ${formatEur(d.by.price)}`,
@@ -74,10 +70,11 @@ export function Quality({ quality, audit, live }: Props) {
       id="quality"
       title="Contrôle des imports"
       description={
+        // One sentence whatever the data source: text that changed once the live data arrived
+        // pushed the whole page down (layout shift).
         <>
-          {live
-            ? "Contrôle effectué à chaque import par le service d'ingestion, avec le même validateur que le build : un fichier invalide est refusé en entier et n'atteint jamais le catalogue."
-            : "Contrôle effectué au build sur les CSV fournisseurs : un fichier invalide bloque le déploiement."}{" "}
+          Contrôle effectué au build et à chaque import par le service d'ingestion, avec le même
+          validateur : un fichier invalide est refusé en entier et n'atteint jamais le catalogue.
           Les contrôles métier ne bloquent pas : ils signalent ce qu'un humain doit regarder.
         </>
       }

@@ -8,8 +8,12 @@ describe("dashboardProps", () => {
     expect(p.initialRows).toHaveLength(15);
     expect(p.initialRows[0].price).toBe(5.36);
     expect(p.options.providers).toHaveLength(18);
-    expect(p.initialAudit.duplicates).toHaveLength(219);
+    expect(p.initialAudit.duplicates.count).toBe(219);
     expect(p.initialQuality.rejected).toEqual([]);
+  });
+
+  test("stay small: every dashboard page carries them in its HTML", () => {
+    expect(JSON.stringify(dashboardProps()).length).toBeLessThan(50_000);
   });
 
   test("navigation lists every page once, home first", () => {

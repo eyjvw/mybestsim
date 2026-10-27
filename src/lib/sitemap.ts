@@ -1,12 +1,24 @@
+import { ARTICLE } from "./cruise";
+import { SITE_NAV } from "./page-props";
+
 export interface SitemapPage {
   path: string;
   lastmod: string;
 }
 
-/** Indexable pages only: the article. The dashboard pages carry a noindex meta. */
-export const INDEXED_PAGES: SitemapPage[] = [
-  { path: "/blog/internet-croisiere-esim/", lastmod: "2026-10-27" },
-];
+/** A nav link in its canonical form: the trailing slash Astro gives every page's URL. */
+export const canonicalPath = (href: string) => (href.endsWith("/") ? href : `${href}/`);
+
+/**
+ * Every page of the site navigation is indexed. The dashboard pages change with each build's
+ * data snapshot; the article with its own update date.
+ */
+export function sitemapPages(builtAt: string): SitemapPage[] {
+  return SITE_NAV.map(({ href }) => ({
+    path: canonicalPath(href),
+    lastmod: href === ARTICLE.path ? ARTICLE.updated : builtAt.slice(0, 10),
+  }));
+}
 
 const escapeXml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

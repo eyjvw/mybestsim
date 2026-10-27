@@ -109,3 +109,31 @@ export function auditCatalog(products: Product[]): Audit {
     dominated: dominatedWithinProvider(products),
   };
 }
+
+/**
+ * What the pages show of an audit: each check's count and its first rows. A few kilobytes,
+ * where the full audit (every flagged offer) weighed 300 KB in each dashboard page.
+ */
+export interface AuditSummary {
+  duplicates: { count: number; skus: number; top: DuplicateGroup[] };
+  outliers: { count: number; top: PriceOutlier[] };
+  dominated: { count: number; top: Dominated[] };
+}
+
+/** Rows shown per check on /qualite. */
+export const AUDIT_SHOWN = 5;
+
+export function summarizeAudit(audit: Audit, shown = AUDIT_SHOWN): AuditSummary {
+  return {
+    duplicates: {
+      count: audit.duplicates.length,
+      skus: audit.duplicates.reduce((n, d) => n + d.skus.length, 0),
+      top: audit.duplicates.slice(0, shown),
+    },
+    outliers: { count: audit.outliers.length, top: audit.outliers.slice(0, shown) },
+    dominated: { count: audit.dominated.length, top: audit.dominated.slice(0, shown) },
+  };
+}
+
+export const flaggedCount = (s: AuditSummary) =>
+  s.duplicates.count + s.outliers.count + s.dominated.count;

@@ -17,38 +17,40 @@ const builtOn = new Date(BUILD.builtAt).toLocaleDateString("fr-FR", {
 
 <Layout
   title="Catalogue eSIM · Tableau de bord MyBestSim"
-  description="Statistiques clés du catalogue eSIM importé des fichiers fournisseurs : volumes, prix, data et répartition par fournisseur, avec analyse, offres et contrôle qualité en sous-pages."
+  description={`Tableau de bord du catalogue eSIM de ${props.options.providers.length} fournisseurs : nombre d'offres, prix minimum, maximum et moyen, data moyenne et répartition, à jour à chaque import.`}
 >
   <div class="mx-auto max-w-[1720px] px-4 pb-16 sm:px-6 lg:px-10 2xl:px-14">
     <SiteHeader current="/" />
-    <header class="pt-8 pb-6 lg:pt-10">
-      <h1 class="text-3xl leading-[1.1] font-bold tracking-tight sm:text-4xl lg:text-5xl">
-        Catalogue eSIM : <em class="whitespace-nowrap text-accent">tableau de bord</em>
-      </h1>
-      <div class="mt-3 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <p class="max-w-2xl text-[15px] text-ink-2">
-          Généré automatiquement à partir des fichiers CSV fournisseurs. Les six indicateurs demandés sont ici ;
-          l'analyse, les offres et la qualité des données ont chacune leur page. Les filtres vous suivent d'une page à
-          l'autre.
-        </p>
-        <div class="flex flex-wrap items-center gap-2.5 xl:shrink-0 xl:justify-end">
-          <p
-            class="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-medium shadow-card"
-          >
-            <span aria-hidden="true" class="grid size-5 shrink-0 place-items-center rounded-full bg-good text-[11px] text-white"
-              >✓</span
-            >
-            Généré depuis les CSV fournisseurs · build du {builtOn}
+    <main>
+      <header class="pt-8 pb-6 lg:pt-10">
+        <h1 class="text-3xl leading-[1.1] font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          Catalogue eSIM : <em class="whitespace-nowrap text-accent">tableau de bord</em>
+        </h1>
+        <div class="mt-3 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <p class="max-w-2xl text-[15px] text-ink-2">
+            Généré automatiquement à partir des fichiers CSV fournisseurs. Les six indicateurs demandés sont ici ;
+            l'analyse, les offres et la qualité des données ont chacune leur page. Les filtres vous suivent d'une page à
+            l'autre.
           </p>
-          <a
-            class="inline-flex items-center rounded-full border border-accent/30 bg-surface px-4 py-1.5 text-sm font-semibold text-accent shadow-card hover:border-accent"
-            href="/import">Tester un import →</a
-          >
+          <div class="flex flex-wrap items-center gap-2.5 xl:shrink-0 xl:justify-end">
+            <p
+              class="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-medium shadow-card"
+            >
+              <span aria-hidden="true" class="grid size-5 shrink-0 place-items-center rounded-full bg-good text-[11px] text-white"
+                >✓</span
+              >
+              Généré depuis les CSV fournisseurs · build du {builtOn}
+            </p>
+            <a
+              class="inline-flex items-center rounded-full border border-accent/30 bg-surface px-4 py-1.5 text-sm font-semibold text-accent shadow-card hover:border-accent"
+              href="/import">Tester un import →</a
+            >
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <Dashboard client:load view="overview" {...props} />
+      <Dashboard client:afterpaint view="overview" {...props} />
+    </main>
     <SiteFooter />
   </div>
 </Layout>

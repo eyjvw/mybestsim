@@ -1,5 +1,6 @@
 ---
 import poppins400 from "@fontsource/poppins/files/poppins-latin-400-normal.woff2?url";
+import poppins500 from "@fontsource/poppins/files/poppins-latin-500-normal.woff2?url";
 import poppins600 from "@fontsource/poppins/files/poppins-latin-600-normal.woff2?url";
 import poppins700i from "@fontsource/poppins/files/poppins-latin-700-italic.woff2?url";
 import poppins700 from "@fontsource/poppins/files/poppins-latin-700-normal.woff2?url";
@@ -10,14 +11,15 @@ interface Props {
   description: string;
   /** Open Graph type: "article" for the blog, "website" for the dashboard. */
   ogType?: "website" | "article";
-  /** The dashboard is a demo, kept out of search engines; the article is meant to be found. */
+  /** Every page is meant to be found; only the 404 page opts out (and then has no canonical). */
   robots?: string;
 }
 
-const { title, description, ogType = "website", robots = "noindex, nofollow" } = Astro.props;
-// Fonts used above the fold: fetched with the page, so the text does not jump when they arrive.
-const preloads = [poppins400, poppins600, poppins700, poppins700i];
+const { title, description, ogType = "website", robots = "index, follow" } = Astro.props;
+// Every weight the pages use is above the fold: fetched with the page, so no text jumps when it arrives.
+const preloads = [poppins400, poppins500, poppins600, poppins700, poppins700i];
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const indexed = !robots.includes("noindex");
 ---
 
 <!doctype html>
@@ -34,7 +36,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical.href} />
     <meta property="og:locale" content="fr_FR" />
-    <link rel="canonical" href={canonical.href} />
+    {indexed && <link rel="canonical" href={canonical.href} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
     <!-- Page-specific head content: structured data, article dates. -->

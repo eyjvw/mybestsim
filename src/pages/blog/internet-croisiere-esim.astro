@@ -6,18 +6,18 @@ import "../../styles/article.css";
 import SiteFooter from "../../components/SiteFooter.astro";
 import SiteHeader from "../../components/SiteHeader.astro";
 import Layout from "../../layouts/Layout.astro";
-import { cheapestPlan, ITINERARIES, planCount, roamingCost } from "../../lib/cruise";
+import { ARTICLE, cheapestPlan, ITINERARIES, planCount, roamingCost } from "../../lib/cruise";
 import { formatEur, formatEurRound, formatInt, formatTier } from "../../lib/format";
 import { loadCatalog } from "../../lib/load";
 import { computeStats } from "../../lib/stats";
 
-const PATH = "/blog/internet-croisiere-esim/";
+const PATH = ARTICLE.path;
 const TITLE = "Internet en croisière : quelle eSIM choisir ?";
 const SEO_TITLE = "Internet en croisière : quelle eSIM choisir ? (2026)";
 const DESCRIPTION =
   "Wi-Fi du bord, réseau du navire ou eSIM ? Les vrais prix en 2026, le piège du roaming en mer et l'eSIM à choisir selon votre itinéraire, escale par escale.";
-const PUBLISHED = "2026-10-26";
-const UPDATED = "2026-10-26";
+const PUBLISHED = ARTICLE.published;
+const UPDATED = ARTICLE.updated;
 const updatedLabel = new Date(UPDATED).toLocaleDateString("fr-FR", {
   day: "numeric",
   month: "long",
@@ -159,7 +159,7 @@ const TOC = [
 ] as const;
 ---
 
-<Layout title={SEO_TITLE} description={DESCRIPTION} ogType="article" robots="index, follow">
+<Layout title={SEO_TITLE} description={DESCRIPTION} ogType="article">
   <Fragment slot="head">
     <meta property="article:published_time" content={PUBLISHED} />
     <meta property="article:modified_time" content={UPDATED} />
@@ -167,6 +167,7 @@ const TOC = [
   </Fragment>
   <div class="mx-auto max-w-[1720px] px-4 pb-16 sm:px-6 lg:px-10 2xl:px-14">
     <SiteHeader current={PATH} />
+    <main>
     <nav aria-label="Fil d'Ariane" class="mt-6 text-xs text-ink-3"> <a class="hover:text-ink hover:underline" href="/">Tableau de bord</a>
       <span aria-hidden="true"> › </span>
       <span aria-current="page">Internet en croisière</span>
@@ -592,6 +593,7 @@ const TOC = [
         mark();
       })();
     </script>
+    </main>
     <SiteFooter />
   </div>
 </Layout>

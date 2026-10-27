@@ -89,8 +89,9 @@ l'installation et quelques astuces. Les pages de MyBestSim, relues une à une, n
   accessible plutôt qu'une image.
 
 **Indexation.** L'article est indexable, listé dans `sitemap.xml` et annoncé par `robots.txt`, pour
-pouvoir se classer comme le demande le sujet. Les pages du tableau de bord restent en `noindex`. J'avais
-d'abord laissé l'article en `noindex`, pour éviter le contenu dupliqué le jour où MyBestSim le publie.
+pouvoir se classer comme le demande le sujet. Les pages du tableau de bord le sont aussi depuis le
+27 octobre 2026 : en `noindex`, PageSpeed leur donnait 66 en SEO. J'avais d'abord laissé l'article en
+`noindex`, pour éviter le contenu dupliqué le jour où MyBestSim le publie.
 Mais un article qui ne peut pas être indexé ne peut pas se classer, et Lighthouse lui donnait 63 en
 SEO pour cette seule raison. Le jour de sa publication sur mybestsim.com, une balise canonical vers la
 nouvelle URL suffit à éviter le contenu dupliqué.

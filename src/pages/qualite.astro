@@ -16,20 +16,22 @@ const atThreshold = loadCatalog().products.filter((p) => p.price === PRICE_THRES
 <Layout title="Qualité · Tableau de bord MyBestSim" description="Le contrôle de chaque import, les points qu'un humain doit vérifier, et les choix assumés quand le sujet laissait une question ouverte.">
   <div class="mx-auto max-w-[1720px] px-4 pb-16 sm:px-6 lg:px-10 2xl:px-14">
     <SiteHeader current="/qualite" />
-    <header class="pt-8 pb-6 lg:pt-10">
-      <h1 class="text-3xl leading-[1.1] font-bold tracking-tight sm:text-4xl lg:text-5xl">
-        Qualité des <em class="text-accent">données</em>
-      </h1>
-      <p class="mt-3 max-w-3xl text-[15px] text-ink-2">Le contrôle de chaque import, les points qu'un humain doit vérifier, et les choix assumés quand le sujet laissait une question ouverte.</p>
-    </header>
-    <Dashboard client:load view="quality" {...props} />
-    <div class="mt-12">
-      <Decisions
-        unlimited={props.initialStats.data.unlimited}
-        atThreshold={atThreshold}
-        duplicates={props.initialAudit.duplicates.length}
-      />
-    </div>
+    <main>
+      <header class="pt-8 pb-6 lg:pt-10">
+        <h1 class="text-3xl leading-[1.1] font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          Qualité des <em class="text-accent">données</em>
+        </h1>
+        <p class="mt-3 max-w-3xl text-[15px] text-ink-2">Le contrôle de chaque import, les points qu'un humain doit vérifier, et les choix assumés quand le sujet laissait une question ouverte.</p>
+      </header>
+      <Dashboard client:afterpaint view="quality" {...props} />
+      <div class="mt-12">
+        <Decisions
+          unlimited={props.initialStats.data.unlimited}
+          atThreshold={atThreshold}
+          duplicates={props.initialAudit.duplicates.count}
+        />
+      </div>
+    </main>
     <SiteFooter />
   </div>
 </Layout>

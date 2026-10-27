@@ -1,5 +1,6 @@
-# The dashboard pages are a demo and carry a noindex meta; the article is meant to be indexed.
+# Every page is meant to be indexed; the sitemap lists them. The API only answers POSTs.
 User-agent: *
 Allow: /
+Disallow: /api/
 
 Sitemap: https://mybestsim.sbonneau.xyz/sitemap.xml

@@ -1,10 +1,10 @@
-import type { Audit } from "../lib/audit";
+import { type AuditSummary, flaggedCount } from "../lib/audit";
 import { formatEur, formatInt, formatPct } from "../lib/format";
 import type { Stats } from "../lib/stats";
 
 interface Props {
   stats: Stats;
-  audit: Audit;
+  audit: AuditSummary;
 }
 
 /** The home page stays light: each card leads to a sub-page, with the figure that makes it worth a click. */
@@ -29,7 +29,7 @@ export function Explore({ stats: s, audit }: Props) {
     {
       href: "/qualite",
       title: "Qualité des données",
-      figure: formatInt(audit.duplicates.length + audit.outliers.length + audit.dominated.length),
+      figure: formatInt(flaggedCount(audit)),
       caption: `points à vérifier (doublons, prix atypiques, incohérences), et les choix assumés · ${formatPct(
         s.market.efficient.share,
       )} des offres imbattables`,
