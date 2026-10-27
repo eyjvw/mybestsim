@@ -67,6 +67,15 @@ test.describe("part 2 article", () => {
     await expect(page.locator(".toc-inline")).toBeVisible();
   });
 
+  test("opened at a section, the side table of contents marks it", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${ARTICLE}#roaming-en-mer`);
+    await expect(page.locator('[data-toc-side] a[aria-current="location"]')).toHaveAttribute(
+      "href",
+      "#roaming-en-mer",
+    );
+  });
+
   test("has no serious accessibility violation in the dark theme", async ({ page }) => {
     await page.goto(ARTICLE);
     await page.getByRole("button", { name: "Sombre" }).click();

@@ -32,14 +32,17 @@ const LOCAL = [
   ["verify-overflow-control.mjs", "negative control: the overflow test fails on the old layout"],
   ["verify-article-links.mjs", "every external link of the article answers (network)"],
 ];
-const LIVE = [["verify-live.mjs", "the deployed site, its data, headers and neighbours"]];
+const LIVE = [
+  ["verify-live.mjs", "the deployed site, its data, headers and neighbours"],
+  ["verify-pagespeed.mjs", "Lighthouse 13.5.0 on every page: 100, performance 99 or more"],
+];
 
 const args = process.argv.slice(2);
 const list = args.includes("--live") ? LIVE : args.includes("--local") ? [...CI, ...LOCAL] : CI;
 let failed = 0;
 for (const [file, what] of list) {
   const started = Date.now();
-  const r = spawnSync("bun", [join("checks", file)], { encoding: "utf8", timeout: 600_000 });
+  const r = spawnSync("bun", [join("checks", file)], { encoding: "utf8", timeout: 1_200_000 });
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
   const out = `${r.stdout}${r.stderr}`.trim();
   if (r.status === 0) {
