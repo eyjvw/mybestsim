@@ -590,7 +590,9 @@ const TOC = [
           );
         };
         addEventListener("scroll", () => (frame ||= requestAnimationFrame(mark)), { passive: true });
-        mark();
+        // First mark after the first paint, when the layout is already computed: called during
+        // parsing, it forced a layout of the whole article before anything was on screen.
+        requestAnimationFrame(() => setTimeout(mark));
       })();
     </script>
     </main>

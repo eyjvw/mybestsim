@@ -7,6 +7,8 @@ Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 - **Dashboard en ligne** : <https://mybestsim.sbonneau.xyz>
 - **Article SEO (partie 2)** : <https://mybestsim.sbonneau.xyz/blog/internet-croisiere-esim/>
 - **Code** : ce dépôt
+- **PageSpeed Insights** : 100 en performance, accessibilité, bonnes pratiques et SEO, sur mobile
+  ([détail](#performance-pagespeed-insights))
 
 ![Vue d'ensemble du tableau de bord](docs/screenshots/accueil.png)
 
@@ -249,8 +251,8 @@ et uniques, une canonical égale à sa propre URL, et sa présence dans le sitem
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
 | Unitaire | `bun test`, 198 tests dans 36 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 71 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
-| Oracles | 22 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
+| Navigateur | Playwright, 72 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Oracles | 23 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 
 Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
@@ -261,7 +263,32 @@ Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
 - le validateur Caddy doit rejeter une configuration volontairement cassée ;
 - l'oracle de l'article refuse un prix décalé d'un centime et un article absent du sitemap, celui
   des liens refuse une URL inventée ;
-- le test axe de `/import` en mode live échoue sur la version d'avant la correction de contraste.
+- le test axe de `/import` en mode live échoue sur la version d'avant la correction de contraste ;
+- l'oracle SEO refuse une page sans `<main>`, une page en `noindex` et une page absente du sitemap,
+  et l'oracle PageSpeed refuse une copie du site dont l'accueil est en `noindex` (SEO 66).
+
+### Performance (PageSpeed Insights)
+
+![PageSpeed Insights, accueil sur mobile : 100 partout](docs/screenshots/pagespeed-mobile.png)
+
+PageSpeed Insights donne 100 dans les quatre catégories à l'accueil sur mobile (analyse du
+27 octobre 2026 à 9 h 38, Lighthouse 13.5.0, téléphone émulé en 4G lente). Pour relancer l'analyse :
+[pagespeed.web.dev](https://pagespeed.web.dev/report?url=https%3A%2F%2Fmybestsim.sbonneau.xyz%2F).
+
+`bun run checks:live` relance la même version de Lighthouse sur chaque page du site en ligne, trois
+fois sur mobile et une fois sur ordinateur. L'oracle (`checks/verify-pagespeed.mjs`) exige 100 en
+accessibilité, bonnes pratiques et SEO à chaque passage, et au moins 99 en performance : sur mobile,
+le score varie d'un passage à l'autre.
+
+Avant ces corrections, l'accueil était à 99 sur mobile, 98 en accessibilité et 66 en SEO. Il y avait
+quatre causes, chacune corrigée et mesurée (détail dans le tableau des erreurs, plus bas) :
+
+- les pages du tableau de bord étaient en `noindex`, et aucune n'avait de repère `<main>` ;
+- chaque page embarquait 480 Ko de données pour l'îlot, ramenées à 50 Ko ;
+- le catalogue en direct (1 Mo) était chargé et calculé sur le fil principal, déplacé dans un Web
+  Worker ;
+- les scripts se téléchargeaient avant le premier affichage, alors que le HTML contient déjà tous les
+  chiffres : l'îlot s'hydrate maintenant juste après.
 
 ## CI/CD
 
@@ -429,6 +456,7 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Sur mobile, le chargement du catalogue en direct bloquait la page 200 à 500 ms | mesure Lighthouse avec et sans ce chargement (TBT de 0 à 44 ms sans lui), puis calcul dans un Web Worker |
 | Les scripts de l'îlot se téléchargeaient avant le premier affichage, qui n'en a pas besoin, et retardaient le plus grand élément de la page | audit PageSpeed, puis hydratation après le premier affichage ; un premier essai avec `requestAnimationFrame` partait trop tôt, avant que l'image soit à l'écran |
 | Sur `/qualite`, la phrase d'introduction changeait à l'arrivée des données en direct et décalait la page (0,10) | audit PageSpeed, puis une phrase identique dans les deux cas |
+| Le sommaire de l'article lisait la position des titres pendant le chargement, ce qui forçait la mise en page de tout l'article avant le premier affichage (107 ms) | oracle Lighthouse en ligne (98 sur mobile), puis lecture déplacée après le premier affichage |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de
