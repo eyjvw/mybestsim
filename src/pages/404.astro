@@ -1,0 +1,26 @@
+---
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Page introuvable · Tableau de bord MyBestSim" description="Cette page n'existe pas. Retrouvez le tableau de bord du catalogue eSIM ou l'article sur internet en croisière.">
+  <div class="mx-auto max-w-[1720px] px-4 pb-16 sm:px-6 lg:px-10 2xl:px-14">
+    <SiteHeader current="" />
+    <main class="py-16 lg:py-24">
+      <p class="text-sm font-semibold tracking-wide text-accent uppercase">Erreur 404</p>
+      <h1 class="mt-2 text-3xl leading-[1.1] font-bold tracking-tight sm:text-5xl">
+        Cette page n'existe <em class="text-accent">pas</em>
+      </h1>
+      <p class="mt-4 max-w-2xl text-[15px] text-ink-2">
+        Le lien est peut-être incomplet. Le tableau de bord, les offres et l'article sont accessibles d'ici :
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a class="rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white shadow-card hover:brightness-110" href="/">Tableau de bord</a>
+        <a class="rounded-full border border-accent/30 bg-surface px-5 py-2.5 text-sm font-semibold text-accent hover:border-accent" href="/offres">Toutes les offres</a>
+        <a class="rounded-full border border-accent/30 bg-surface px-5 py-2.5 text-sm font-semibold text-accent hover:border-accent" href="/blog/internet-croisiere-esim/">Internet en croisière : quelle eSIM ?</a>
+      </div>
+    </main>
+    <SiteFooter />
+  </div>
+</Layout>

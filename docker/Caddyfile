@@ -48,6 +48,15 @@
 		@fresh path /catalog.json /stats.json /version.json /
 		header @fresh Cache-Control "no-cache"
 
+		# /offres serves offres/index.html directly: no redirect to /offres/ on every click.
+		try_files {path} {path}/index.html
+		file_server
+	}
+
+	# Unknown pages get the site's own 404 page, with the real 404 status.
+	handle_errors 404 {
+		root * /srv
+		rewrite * /404.html
 		file_server
 	}
 }

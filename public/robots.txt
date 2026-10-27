@@ -1,0 +1,5 @@
+# The dashboard pages are a demo and carry a noindex meta; the article is meant to be indexed.
+User-agent: *
+Allow: /
+
+Sitemap: https://mybestsim.sbonneau.xyz/sitemap.xml

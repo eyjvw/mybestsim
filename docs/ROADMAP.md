@@ -19,14 +19,15 @@ dans [seo/ANALYSE.md](seo/ANALYSE.md).
 | Partie 2 | Analyse de 12 pages concurrentes, article « Internet en croisière : quelle eSIM choisir ? », mise en page pleine largeur | #21, #23, #24 |
 | Bac à sable | Publication sans jeton depuis `/import`, vue `?bac=1`, remise à zéro chaque nuit | #22 |
 | Entretien | Arrêt propre du serveur e2e, `CLAUDE.md` dans le vault, mises à jour des actions GitHub et d'axe-core, accessibilité de `/import`, captures | #18, #20, #12, #25, #26, #27 |
+| Lighthouse | Polices préchargées, plus de redirection, page 404, article indexable avec sitemap, accessibilité et CSP corrigées | #28 |
 
 ## Ouvert
 
 Par ordre d'intérêt pour MyBestSim.
 
 1. **Publier l'article sur mybestsim.com.** Il est prêt à l'emploi : titres, données
-   structurées, liens internes, suggestions d'images. Sur ce domaine de démonstration, il reste en
-   `noindex` pour éviter le contenu dupliqué.
+   structurées, liens internes, suggestions d'images. Le jour de sa publication, ajouter ici une
+   canonical vers sa nouvelle URL, pour éviter le contenu dupliqué.
 2. **De vraies images dans l'article**, à partir des suggestions (photo d'escale, carte des
    itinéraires, capture des réglages d'un iPhone), en WebP et avec leur texte alternatif.
 3. **Surveillance** : `bun run checks:live` une fois par jour (tâche planifiée GitHub, environ

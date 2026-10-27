@@ -88,10 +88,12 @@ l'installation et quelques astuces. Les pages de MyBestSim, relues une à une, n
 - suggestions d'images avec texte alternatif, nom de fichier et format (WebP), et un schéma en HTML
   accessible plutôt qu'une image.
 
-**Choix assumé : le domaine de démonstration reste en `noindex`.** L'article est écrit pour être
-publié sur mybestsim.com. L'indexer ici créerait du contenu dupliqué le jour de sa publication
-là-bas, et c'est le site de MyBestSim qui doit en profiter. Toutes les balises sont prêtes, il suffit
-de retirer le `noindex` sur le domaine final.
+**Indexation.** L'article est indexable, listé dans `sitemap.xml` et annoncé par `robots.txt`, pour
+pouvoir se classer comme le demande le sujet. Les pages du tableau de bord restent en `noindex`. J'avais
+d'abord laissé l'article en `noindex`, pour éviter le contenu dupliqué le jour où MyBestSim le publie.
+Mais un article qui ne peut pas être indexé ne peut pas se classer, et Lighthouse lui donnait 63 en
+SEO pour cette seule raison. Le jour de sa publication sur mybestsim.com, une balise canonical vers la
+nouvelle URL suffit à éviter le contenu dupliqué.
 
 ## Limites
 

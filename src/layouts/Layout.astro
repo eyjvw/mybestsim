@@ -1,4 +1,8 @@
 ---
+import poppins400 from "@fontsource/poppins/files/poppins-latin-400-normal.woff2?url";
+import poppins600 from "@fontsource/poppins/files/poppins-latin-600-normal.woff2?url";
+import poppins700i from "@fontsource/poppins/files/poppins-latin-700-italic.woff2?url";
+import poppins700 from "@fontsource/poppins/files/poppins-latin-700-normal.woff2?url";
 import "../styles/global.css";
 
 interface Props {
@@ -6,9 +10,13 @@ interface Props {
   description: string;
   /** Open Graph type: "article" for the blog, "website" for the dashboard. */
   ogType?: "website" | "article";
+  /** The dashboard is a demo, kept out of search engines; the article is meant to be found. */
+  robots?: string;
 }
 
-const { title, description, ogType = "website" } = Astro.props;
+const { title, description, ogType = "website", robots = "noindex, nofollow" } = Astro.props;
+// Fonts used above the fold: fetched with the page, so the text does not jump when they arrive.
+const preloads = [poppins400, poppins600, poppins700, poppins700i];
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -18,7 +26,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="robots" content="noindex, nofollow" />
+    <meta name="robots" content={robots} />
+    {preloads.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
     <meta name="color-scheme" content="light" />
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />

@@ -86,7 +86,7 @@ function PublishPanel({
 
   if (!live) {
     return (
-      <Panel title="Publier">
+      <Panel level={2} title="Publier">
         <p className="text-sm text-ink-2">
           Cette version du site est statique : le service d'ingestion n'est pas joignable, la
           publication est désactivée. L'aperçu ci-dessus reste exact.
@@ -97,6 +97,7 @@ function PublishPanel({
 
   return (
     <Panel
+      level={2}
       title={sandbox ? "Publier dans le bac à sable" : "Publier dans le catalogue"}
       note={
         sandbox
@@ -265,9 +266,11 @@ function AuditList({ audit }: { audit: Audit }) {
 export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
   const [catalog, setCatalog] = useState<Product[] | null>(null);
   const [live, setLive] = useState(false);
-  // The sandbox is the default when the server has one: a visitor has no token.
-  const [sandboxReady, setSandboxReady] = useState(false);
+  // The sandbox is the default when the server has one: a visitor has no token. Unknown (null)
+  // until checked, and the choice is rendered meanwhile, so the page does not jump when it is.
+  const [sandboxReady, setSandboxReady] = useState<boolean | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
+  const shown: Target = target ?? "sandbox";
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [names, setNames] = useState<string[]>([]);
@@ -283,7 +286,10 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
         setSandboxReady(ready);
         setTarget(ready ? "sandbox" : "live");
       })
-      .catch(() => setTarget("live"));
+      .catch(() => {
+        setSandboxReady(false);
+        setTarget("live");
+      });
   }, []);
 
   // The preview compares the file with the catalogue it would be published to.
@@ -340,12 +346,12 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
 
   return (
     <div className="space-y-6">
-      {sandboxReady && target && (
+      {sandboxReady !== false && (
         <fieldset className="rounded-[18px] border border-line bg-surface px-4 py-3 shadow-card">
           <legend className="sr-only">Où publier le fichier ?</legend>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-semibold">Où publier le fichier ?</p>
-            <div className="flex flex-wrap gap-2" data-publish-target={target}>
+            <div className="flex flex-wrap gap-2" data-publish-target={shown}>
               {(
                 [
                   ["sandbox", "Bac à sable", "sans jeton, remis à zéro chaque nuit"],
@@ -354,25 +360,26 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
               ).map(([value, label, hint]) => (
                 <label
                   key={value}
-                  className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm ${target === value ? "border-accent bg-accent text-on-accent" : "border-accent/30 bg-surface text-accent hover:border-accent"}`}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm ${shown === value ? "border-accent bg-accent text-on-accent" : "border-accent/30 bg-surface text-accent hover:border-accent"}`}
                 >
                   <input
                     type="radio"
                     name="target"
                     value={value}
                     className="sr-only"
-                    checked={target === value}
+                    checked={shown === value}
+                    disabled={target === null}
                     onChange={() => setTarget(value)}
                   />
                   <span className="font-semibold">{label}</span>
-                  <span className={target === value ? "text-on-accent" : "text-ink-3"}>
+                  <span className={shown === value ? "text-on-accent" : "text-ink-3"}>
                     · {hint}
                   </span>
                 </label>
               ))}
             </div>
           </div>
-          {target === "sandbox" && (
+          {shown === "sandbox" && (
             <p className="mt-2 text-xs text-ink-3">
               Publiez ici sans risque : le tableau de bord du bac à sable (
               <a className="text-accent underline underline-offset-2" href="/?bac=1">
@@ -411,7 +418,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
             onChange={(e) => void readFiles(e.target.files)}
           />
         </label>
-        <Panel title="Pas de fichier sous la main ?">
+        <Panel level={2} title="Pas de fichier sous la main ?">
           <p className="text-sm text-ink-2">
             L'exemple simule le fichier Airalo du lendemain : {SAMPLE_CHANGES.repriced} prix
             modifiés, {SAMPLE_CHANGES.removed} offres retirées, {SAMPLE_CHANGES.added} nouvelles et{" "}
@@ -478,6 +485,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel
+              level={2}
               title="Lignes rejetées"
               note="Le même validateur tourne au build et en CI : ces lignes bloqueraient le déploiement."
             >
@@ -497,6 +505,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
               )}
             </Panel>
             <Panel
+              level={2}
               title="Variations de prix"
               note="Rapprochées par SKU avec le catalogue en ligne."
             >
@@ -524,7 +533,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
                 </ol>
               )}
             </Panel>
-            <Panel title="Offres ajoutées et retirées">
+            <Panel level={2} title="Offres ajoutées et retirées">
               {d.added.length + d.removed.length === 0 ? (
                 <p className="text-sm text-ink-2">Aucune.</p>
               ) : (
@@ -547,6 +556,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
               )}
             </Panel>
             <Panel
+              level={2}
               title="Points à vérifier"
               note="Prix à 25 % ou plus du prix médian du même forfait sur tout le catalogue, et doublons du fichier."
             >

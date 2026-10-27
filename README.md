@@ -224,9 +224,11 @@ est une page du même site, rendue au build. La démarche complète est dans
 - **SEO technique** : title et meta description à la bonne longueur, un seul H1, canonical, Open
   Graph, JSON-LD `Article`, `FAQPage` et `BreadcrumbList`, suggestions d'images avec texte
   alternatif.
-- **Choix assumé : pas d'indexation sur ce domaine.** L'article est fait pour mybestsim.com. L'indexer
-  ici créerait du contenu dupliqué le jour où MyBestSim le publie : le domaine de démonstration garde
-  son `noindex`.
+- **Indexable, avec un sitemap.** Le sujet demande un article qui « ranke » : il est donc
+  indexable, listé dans `sitemap.xml` et annoncé par `robots.txt`. Les pages du tableau de bord, qui
+  sont une démonstration, restent en `noindex`. Le jour où MyBestSim publie l'article sur son site,
+  une seule ligne suffit pour éviter le contenu dupliqué : une balise canonical vers l'URL de
+  mybestsim.com.
 
 `checks/verify-article.mjs` vérifie à chaque build la longueur, la structure, les balises, la
 cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis les CSV.
@@ -239,7 +241,7 @@ cohérence du JSON-LD avec la page et chaque prix du catalogue recalculé depuis
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 180 tests dans 32 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Unitaire | `bun test`, 183 tests dans 33 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
 | Navigateur | Playwright, 71 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
 | Oracles | 21 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 16 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
@@ -250,8 +252,8 @@ Les vérifications sont elles-mêmes vérifiées (contrôles négatifs) :
   (172 et 202 px de trop à 390 et 360 px) ;
 - l'oracle métier, nourri d'un chiffre faussé d'une seule unité, l'a refusé ;
 - le validateur Caddy doit rejeter une configuration volontairement cassée ;
-- l'oracle de l'article refuse un prix décalé d'un centime et le retrait du `noindex`, celui des
-  liens refuse une URL inventée ;
+- l'oracle de l'article refuse un prix décalé d'un centime et un article absent du sitemap, celui
+  des liens refuse une URL inventée ;
 - le test axe de `/import` en mode live échoue sur la version d'avant la correction de contraste.
 
 ## CI/CD
@@ -409,6 +411,10 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Sur `/import`, le choix du bac à sable avait un texte à 4,46:1 de contraste et un lien non souligné, invisibles pour la CI : le test axe tournait sans service d'ingestion, donc sans ce choix | audit axe du site en ligne, puis correction et test axe ajouté en mode live |
 | En mode statique, la page d'import interrogeait une API absente et laissait une erreur 404 dans la console | test e2e « zéro erreur console », puis fichier témoin servi au build |
 | Le bac à sable n'était signalé que par une petite ligne sous les indicateurs | revue des captures, bandeau ajouté en haut de page |
+| Le titre de l'article sautait au chargement de la police (décalage de mise en page 0,40), et la page `/import` aussi, quand le choix du bac à sable apparaissait | audit Lighthouse du site en ligne, puis polices préchargées et choix rendu dès le serveur |
+| Chaque clic sur « Offres » ou « Analyse » passait par une redirection vers `/offres/` (200 à 760 ms) | audit Lighthouse, puis `try_files` dans le Caddy de l'image |
+| La validation zod tentait un `eval`, bloqué par la CSP, ce qui laissait un signalement dans la console de Chrome | audit Lighthouse, puis le mode `jitless` de zod |
+| Le nom lu par les lecteurs d'écran pour le logo ne contenait pas son texte visible, et `/import` sautait du titre H1 au H3 | audit Lighthouse, puis corrigés |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de
@@ -425,5 +431,6 @@ qu'on regarde vraiment. Chaque chiffre de ce README provient d'un script, pas d'
 ## Limites et suite
 
 - **Couverture des forfaits régionaux** : c'est une hypothèse, faute de donnée dans les CSV.
-- **Article SEO** : publié ici en démonstration, sans indexation ; sa place est sur mybestsim.com.
+- **Article SEO** : publié ici et indexable ; s'il passe sur mybestsim.com, ajouter une canonical
+  vers sa nouvelle URL.
 - Le détail des étapes restantes est dans [docs/ROADMAP.md](docs/ROADMAP.md).
