@@ -44,16 +44,20 @@ export function Panel({
   children,
   note,
   action,
+  level = 3,
 }: {
   title: string;
   children: ReactNode;
   note?: ReactNode;
   action?: ReactNode;
+  /** Heading level: 3 inside a section, 2 on a page without sections (/import). */
+  level?: 2 | 3;
 }) {
+  const Heading = level === 2 ? "h2" : "h3";
   return (
     <div className="min-w-0 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-5">
       <div className="mb-3 flex items-start justify-between gap-3">
-        <h3 className="text-[15px] font-semibold">{title}</h3>
+        <Heading className="text-[15px] font-semibold">{title}</Heading>
         {action}
       </div>
       {children}

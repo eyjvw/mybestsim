@@ -2,6 +2,10 @@ import Papa from "papaparse";
 import { z } from "zod";
 import type { FileReport, Product, QualityReport, RejectedRow } from "./types";
 
+// zod 4 probes `new Function` to compile faster parsers. The site's CSP forbids eval, so in the
+// browser the probe only produced a CSP violation report: parse without it everywhere.
+z.config({ jitless: true });
+
 const HEADER = [
   "sku",
   "provider",

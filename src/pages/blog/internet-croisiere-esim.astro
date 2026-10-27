@@ -159,7 +159,7 @@ const TOC = [
 ] as const;
 ---
 
-<Layout title={SEO_TITLE} description={DESCRIPTION} ogType="article">
+<Layout title={SEO_TITLE} description={DESCRIPTION} ogType="article" robots="index, follow">
   <Fragment slot="head">
     <meta property="article:published_time" content={PUBLISHED} />
     <meta property="article:modified_time" content={UPDATED} />
@@ -239,8 +239,8 @@ const TOC = [
         l'autre sans vous prévenir. Tout le budget se joue là : savoir à quel réseau vous êtes connecté, et à quel prix.
       </p>
 
-      <figure class="zones" role="img" aria-labelledby="zones-caption">
-        <div class="zones-band" aria-hidden="true">
+      <figure class="zones">
+        <div class="zones-band" role="img" aria-labelledby="zones-caption">
           <div class="zone zone-land">
             <span class="zone-icon">📶</span>
             <span class="zone-name">Port et côte</span>

@@ -8,6 +8,8 @@ test.describe.configure({ mode: "serial" });
 
 /** /import publishes to the sandbox by default: these tests target the real catalogue. */
 async function chooseCatalog(page: Page) {
+  // The choice is shown before the sandbox check ends; it accepts clicks once known.
+  await expect(page.locator('input[name="target"][value="live"]')).toBeEnabled();
   await page.locator("[data-publish-target]").getByText("Catalogue en ligne").click();
   await expect(page.locator('[data-publish-target="live"]')).toBeVisible();
   await expect(page.locator("[data-import-input]")).toBeEnabled();
