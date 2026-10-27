@@ -1,6 +1,7 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { type Audit, auditCatalog } from "../lib/audit";
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { type AuditSummary, auditCatalog, summarizeAudit } from "../lib/audit";
 import {
+  activeFilterCount,
   applyFilters,
   DEFAULT_FILTERS,
   type FilterDomain,
@@ -18,14 +19,8 @@ import {
   formatTier,
 } from "../lib/format";
 import { buildInsights } from "../lib/insights";
-import {
-  isSandbox,
-  LIVE_DATA,
-  type LiveCatalog,
-  loadCatalog,
-  SANDBOX_DATA,
-  withSandbox,
-} from "../lib/runtime";
+import { loadLive } from "../lib/live-client";
+import { isSandbox, LIVE_DATA, type LiveCatalog, SANDBOX_DATA, withSandbox } from "../lib/runtime";
 import { computeStats, DATA_TIERS, type Stats, VALIDITIES } from "../lib/stats";
 import type { Product, QualityReport } from "../lib/types";
 import { Changes } from "./Changes";
@@ -54,7 +49,7 @@ interface Props {
   options: FilterOptions;
   /** Build-time quality report and audit, shown until the live data has loaded. */
   initialQuality: QualityReport;
-  initialAudit: Audit;
+  initialAudit: AuditSummary;
   builtAt: string;
   /** Which page this island renders: the home overview or one of the sub-pages. */
   view: "overview" | "analysis" | "offers" | "quality";
@@ -138,8 +133,8 @@ export default function Dashboard({
 
   // Filter choices follow the catalog shown: a new provider appears without a rebuild.
   const options = useMemo(
-    () => (products ? filterOptions(products) : buildOptions),
-    [products, buildOptions],
+    () => live?.summary?.options ?? (products ? filterOptions(products) : buildOptions),
+    [live, products, buildOptions],
   );
   const domain = useMemo<FilterDomain>(
     () => ({
@@ -155,8 +150,9 @@ export default function Dashboard({
     const sb = isSandbox(window.location.search);
     sandboxRef.current = sb;
     setSandbox(sb);
-    loadCatalog(undefined, sb ? SANDBOX_DATA : LIVE_DATA)
-      .then(setLive)
+    // Fetched and summarised in a worker; the re-render with the new figures can be interrupted.
+    loadLive(sb ? SANDBOX_DATA : LIVE_DATA)
+      .then((c) => startTransition(() => setLive(c)))
       .catch(() => setError(true));
   }, []);
 
@@ -191,15 +187,23 @@ export default function Dashboard({
     () => (products ? applyFilters(products, deferred) : null),
     [products, deferred],
   );
+  // No filter: the worker's stats of the whole catalog, instead of computing them again here.
+  const unfiltered = activeFilterCount(deferred) === 0;
   const s = useMemo(
-    () => (filtered ? computeStats(filtered) : initialStats),
-    [filtered, initialStats],
+    () =>
+      !filtered
+        ? initialStats
+        : unfiltered && live?.summary
+          ? live.summary.stats
+          : computeStats(filtered),
+    [filtered, unfiltered, live, initialStats],
   );
   const insights = useMemo(() => buildInsights(s), [s]);
   // The business checks always look at the whole catalog, not at the filtered view.
   const audit = useMemo(
-    () => (products ? auditCatalog(products) : initialAudit),
-    [products, initialAudit],
+    () =>
+      live?.summary?.audit ?? (products ? summarizeAudit(auditCatalog(products)) : initialAudit),
+    [live, products, initialAudit],
   );
   const quality = live?.version?.quality ?? initialQuality;
   const stale = filters !== deferred;
@@ -539,9 +543,7 @@ export default function Dashboard({
         </Section>
       )}
 
-      {view === "quality" && (
-        <Quality quality={quality} audit={audit} live={live?.source === "live"} />
-      )}
+      {view === "quality" && <Quality quality={quality} audit={audit} />}
     </div>
   );
 }

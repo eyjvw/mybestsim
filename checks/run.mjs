@@ -12,6 +12,7 @@ const CI = [
   ["verify-business.mjs", "savings, wins, 5G premium, unbeaten offers, audit and histogram"],
   ["verify-pages.mjs", "each section on its page, navigation and current page"],
   ["verify-article.mjs", "part 2 article: length and structure from the analysis, SEO, prices"],
+  ["verify-seo.mjs", "every page: one main landmark, indexable, canonical, in the sitemap"],
   ["verify-brand.mjs", "MyBestSim tokens and self-hosted fonts in the built CSS"],
   ["verify-diff.mjs", "the import report against an independent SKU diff"],
   ["verify-ingest.mjs", "publish through the real server, refusals change nothing"],

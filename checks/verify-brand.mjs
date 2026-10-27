@@ -1,5 +1,6 @@
 // The built CSS carries the MyBestSim tokens and a self-hosted Poppins; no page asks a
-// third party for fonts or styles (the production CSP only allows 'self').
+// third party for fonts or styles (the production CSP only allows 'self'). The stylesheet is
+// inlined in each page (no render-blocking request), so it is read from the pages' <style> too.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -8,11 +9,16 @@ const fail = (msg) => {
   process.exit(1);
 };
 const assets = readdirSync("dist/_astro");
-const css = assets
-  .filter((f) => f.endsWith(".css"))
-  .map((f) => readFileSync(join("dist/_astro", f), "utf8"))
-  .join("\n");
-if (!css) fail("no CSS in dist/_astro");
+const inline = ["dist/index.html", "dist/import/index.html"].flatMap((page) =>
+  [...readFileSync(page, "utf8").matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]),
+);
+const css = [
+  ...assets
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => readFileSync(join("dist/_astro", f), "utf8")),
+  ...inline,
+].join("\n");
+if (!css) fail("no CSS in dist/_astro nor inline in the pages");
 const fonts = assets.filter((f) =>
   /^poppins-latin-(400|500|600|700)-(normal|italic).*\.woff2$/.test(f),
 );

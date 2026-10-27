@@ -1,4 +1,5 @@
 import type { ChangesSummary } from "./changes";
+import type { CatalogSummary } from "./live";
 import type { Product, QualityReport } from "./types";
 
 /**
@@ -19,6 +20,8 @@ export interface LiveCatalog {
   source: "live" | "build";
   version: LiveVersion | null;
   changes: ChangesSummary | null;
+  /** Stats, audit and filter choices of the whole catalog, when a worker computed them. */
+  summary?: CatalogSummary;
 }
 
 type Fetch = (url: string) => Promise<Response>;

@@ -22,6 +22,13 @@ export interface Itinerary {
 
 const MBS = "https://mybestsim.com/fr";
 
+/** The part 2 article: its URL and dates, shared by the page and the sitemap. */
+export const ARTICLE = {
+  path: "/blog/internet-croisiere-esim/",
+  published: "2026-10-26",
+  updated: "2026-10-26",
+} as const;
+
 /**
  * Cruise itineraries of the article and the catalogue plan that fits each. A 7-night cruise
  * has about five port days: 5 GB covers maps, messages and photos at roughly 1 GB per port

@@ -16,7 +16,8 @@ bun run checks:live               # le site déployé, après une mise en produc
 | `verify-kpis.mjs` | les six indicateurs du sujet dans `stats.json` et dans le HTML de l'accueil | CI |
 | `verify-business.mjs` | économies, fournisseurs les moins chers, prime 5G, offres imbattables, contrôles qualité, histogramme | CI |
 | `verify-pages.mjs` | chaque section sur sa page, navigation, page courante, cartes de l'accueil | CI |
-| `verify-article.mjs` | article de la partie 2 : au moins aussi long que la médiane des concurrents mesurés (`docs/seo/serp.json`), H1, H2, tableaux, FAQ, title, description, canonical, Open Graph, JSON-LD cohérent avec la page, article indexable et présent dans le sitemap (le tableau de bord restant en noindex), et chaque prix du catalogue recalculé depuis les CSV | CI |
+| `verify-article.mjs` | article de la partie 2 : au moins aussi long que la médiane des concurrents mesurés (`docs/seo/serp.json`), H1, H2, tableaux, FAQ, title, description, canonical, Open Graph, JSON-LD cohérent avec la page, article indexable et présent dans le sitemap, et chaque prix du catalogue recalculé depuis les CSV | CI |
+| `verify-seo.mjs` | chaque page : un seul `<main>` et un seul H1, title et description de bonne longueur et uniques, `index, follow`, canonical et `og:url` égales à sa propre URL, présence dans le sitemap, qui ne liste rien d'autre ; la page 404 en `noindex`, sans canonical ni place dans le sitemap | CI |
 | `verify-brand.mjs` | couleurs MyBestSim et polices auto-hébergées dans le CSS construit, aucune ressource externe | CI |
 | `verify-diff.mjs` | le rapport d'import contre un diff indépendant par SKU | CI |
 | `verify-ingest.mjs` | publication à travers le vrai serveur ; jeton faux, fichier invalide et garde-fou ne changent rien | CI |
