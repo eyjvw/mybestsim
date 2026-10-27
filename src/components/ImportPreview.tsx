@@ -170,7 +170,7 @@ function PublishPanel({
             <p>
               <strong>Publié</strong> : release <code>{result.importId}</code>.{" "}
               <a
-                className="font-semibold text-accent underline-offset-2 hover:underline"
+                className="font-semibold text-accent underline underline-offset-2"
                 href={sandbox ? "/?bac=1#changes" : "/#changes"}
               >
                 {sandbox ? "Voir le tableau de bord du bac à sable →" : "Voir le tableau de bord →"}
@@ -365,7 +365,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
                     onChange={() => setTarget(value)}
                   />
                   <span className="font-semibold">{label}</span>
-                  <span className={target === value ? "text-on-accent/85" : "text-ink-3"}>
+                  <span className={target === value ? "text-on-accent" : "text-ink-3"}>
                     · {hint}
                   </span>
                 </label>
@@ -375,7 +375,7 @@ export default function ImportPreview({ sampleUrl, validSampleUrl }: Props) {
           {target === "sandbox" && (
             <p className="mt-2 text-xs text-ink-3">
               Publiez ici sans risque : le tableau de bord du bac à sable (
-              <a className="text-accent underline-offset-2 hover:underline" href="/?bac=1">
+              <a className="text-accent underline underline-offset-2" href="/?bac=1">
                 /?bac=1
               </a>
               ) se met à jour sans rebuild, le vrai catalogue n'est jamais touché.

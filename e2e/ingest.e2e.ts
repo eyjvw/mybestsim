@@ -139,6 +139,27 @@ test.describe("live data, no rebuild", () => {
     expect((await (await request.get("/data/version.json")).json()).importId).toBe(before);
   });
 
+  test("the import page with the sandbox choice has no serious violation, in both themes", async ({
+    page,
+  }) => {
+    await page.goto("/import");
+    await expect(page.locator('[data-publish-target="sandbox"]')).toBeVisible();
+    const blocking = async () =>
+      (
+        await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()
+      ).violations
+        .filter((v) => v.impact === "serious" || v.impact === "critical")
+        .map((v) => v.id);
+    expect(await blocking()).toEqual([]);
+    // With a preview and the publish panel open, then in the dark theme.
+    await page.getByRole("button", { name: "Exemple sans erreur" }).click();
+    await expect(page.locator("[data-publish-form]")).toBeVisible();
+    expect(await blocking()).toEqual([]);
+    await page.getByRole("button", { name: "Sombre" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    expect(await blocking()).toEqual([]);
+  });
+
   test("anyone can publish to the sandbox without a token, production stays as it was", async ({
     page,
     request,
