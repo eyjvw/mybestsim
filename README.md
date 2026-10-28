@@ -107,7 +107,9 @@ Les captures sont prises sur un serveur neuf, juste après la publication du fic
   bas.
 - **Identité MyBestSim** relevée sur mybestsim.com : police Poppins hébergée sur le site, bleu
   `#007bff`, filtres en pastilles, cartes arrondies, bouton principal rouge. Thème clair par
-  défaut, sombre bleu nuit en option.
+  défaut, sombre bleu nuit en option. Les listes déroulantes s'ouvrent arrondies et aux couleurs
+  du thème dans Chrome et Edge (sélecteur personnalisable, `appearance: base-select`) ; Safari et
+  Firefox gardent leur liste native.
 - **Logos des fournisseurs**, comme sur mybestsim.com : dans la répartition de l'accueil, les
   classements de `/analyse`, le tableau des offres et le simulateur. Ce sont 17 images WebP de
   64 px (12,9 Ko en tout) servies par le site, reprises de mybestsim.com ou, à défaut, du site
@@ -273,7 +275,7 @@ et uniques, une canonical égale à sa propre URL, et sa présence dans le sitem
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
 | Unitaire | `bun test`, 216 tests dans 40 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 78 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix, logos des fournisseurs, opportunités et liens vers mybestsim.com, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Navigateur | Playwright, 79 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix, logos des fournisseurs, opportunités et liens vers mybestsim.com, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
 | Oracles | 23 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 
@@ -467,6 +469,7 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Un oracle attendait un mauvais nom de fichier | relecture de l'oracle contre le comportement voulu |
 | Le skill de nettoyage de texte déclaré à tort absent | signalé par moi |
 | Le curseur restait une flèche sur les boutons | signalé par moi, puis test e2e |
+| Les listes déroulantes s'ouvraient en rectangle, hors de la direction artistique arrondie | signalé par moi, puis sélecteur personnalisable dans Chrome et Edge et test e2e |
 | Le service non-root ne pouvait pas écrire dans un volume Docker neuf, qui appartient à root | premier passage du smoke test des conteneurs en CI |
 | L'installation de Chromium sur le runner prenait 14 minutes, et le job e2e dépassait sa limite | premier passage de la CI, puis passage à l'image Playwright |
 | Un test axe était instable : il mesurait le contraste pendant la transition de thème | CI d'une PR Dependabot, sans rapport avec la montée de versions |
