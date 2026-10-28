@@ -10,6 +10,7 @@ import { formatEur, formatInt, formatTier } from "../lib/format";
 import { REGION_NAMES } from "../lib/regions";
 import { DATA_TIERS, VALIDITIES } from "../lib/stats";
 import type { Product } from "../lib/types";
+import { ProviderLogo } from "./ProviderLogo";
 import { Panel } from "./Section";
 
 interface Props {
@@ -199,6 +200,10 @@ export function Finder({ products, destinations }: Props) {
                     <span className="text-xs font-semibold text-accent tabular-nums">{i + 1}.</span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">
+                        <ProviderLogo
+                          provider={m.product.provider}
+                          className="relative -top-px mr-1.5"
+                        />
                         {m.product.provider} · {formatTier(m.product.dataGb)} ·{" "}
                         {m.product.validityDays} j
                         {i === 0 && (

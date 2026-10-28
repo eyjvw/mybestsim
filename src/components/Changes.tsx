@@ -32,7 +32,7 @@ export function Changes({ changes: c }: Props) {
     <div className="grid gap-4 lg:grid-cols-[2fr_3fr]" data-changes={c.importId}>
       <Panel
         title={`Import du ${when(c.importedAt)}`}
-        note={`Release ${c.importId}, comparée à ${c.previousImportId}.`}
+        note={`Import ${c.importId}, comparé au précédent (${c.previousImportId}).`}
       >
         {total === 0 ? (
           <p className="text-sm text-ink-2">Aucun changement par rapport à l'import précédent.</p>

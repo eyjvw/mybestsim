@@ -18,3 +18,22 @@ export const formatGb = (n: number | null) => (n === null ? DASH : `${dec.format
 export const formatPct = (n: number | null) => (n === null ? DASH : pct.format(n));
 export const formatEurPerGb = (n: number | null) => (n === null ? DASH : `${dec.format(n)} €/Go`);
 export const formatTier = (gb: number | null) => (gb === null ? "Illimité" : `${gb} Go`);
+
+interface Plan {
+  countryName: string;
+  dataGb: number | null;
+  validityDays: number;
+}
+
+/** "Europe Illimité 30 j": a plan as the dashboard names it. */
+export const planLabel = (p: Plan) =>
+  `${p.countryName} ${formatTier(p.dataGb)} ${p.validityDays} j`;
+
+/** Cheapest and dearest offers, naming the provider once when both come from the same one. */
+export const rangeLabel = (
+  cheap: Plan & { provider: string },
+  dear: Plan & { provider: string },
+) =>
+  cheap.provider === dear.provider
+    ? `${planLabel(cheap)} → ${planLabel(dear)}, chez ${cheap.provider}`
+    : `${planLabel(cheap)} (${cheap.provider}) → ${planLabel(dear)} (${dear.provider})`;

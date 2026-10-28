@@ -10,7 +10,7 @@ Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 - **PageSpeed Insights** : 100 en performance, accessibilité, bonnes pratiques et SEO, sur mobile
   ([détail](#performance-pagespeed-insights))
 
-![Vue d'ensemble du tableau de bord](docs/screenshots/accueil.png)
+![Accueil du tableau de bord : les six points du sujet dès le premier écran](docs/screenshots/accueil.png)
 
 ## Sommaire
 
@@ -38,10 +38,11 @@ Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 | 3. Fourchette de prix | 5,36 € à 154,63 € | accueil, carte 3 |
 | 4. Data moyenne par carte | 14,49 Go (hors 653 offres illimitées) | accueil, carte 4 |
 | 5. Prix moyen global | 29,30 € (médiane 20,70 €) | accueil, carte 5 |
-| 6. Répartition par fournisseur | 18 fournisseurs, d'Airalo (722) à 4S eSIM (92) | accueil, section 6 |
+| 6. Répartition par fournisseur | 18 fournisseurs, d'Airalo (722) à 4S eSIM (92) | accueil, carte 6 et section 6 |
 | 7. Statistiques bonus | prix au Go, paliers, distribution, économies, qualité | `/analyse`, `/qualite` |
 
-Les six indicateurs sont dans le HTML généré au build : la page les affiche avant même que le
+Les six points tiennent dans le premier écran de l'accueil, sur un téléphone (390 × 844) comme sur un
+portable (1 440 × 900). Ils sont dans le HTML généré au build : la page les affiche avant même que le
 JavaScript se charge. Chaque chiffre porte `data-kpi` et `data-value`, pour qu'un programme
 puisse le vérifier sans interpréter du texte. Tous ces chiffres ont été mesurés une seconde fois
 par un script indépendant, voir [Qualité et tests](#qualité-et-tests).
@@ -50,7 +51,7 @@ par un script indépendant, voir [Qualité et tests](#qualité-et-tests).
 
 | Page | Contenu |
 | --- | --- |
-| `/` Vue d'ensemble | points 1 à 6, constats « À retenir », dernier import, accès aux sous-pages |
+| `/` Accueil | points 1 à 6 dès le premier écran, répartition par fournisseur avec leurs logos, histogramme des prix avec le seuil de 100 €, trois constats « À retenir », dernier import, accès aux autres pages |
 | `/analyse` | point 7 : prix médian au Go, prix par palier, histogramme, profil des offres, couverture, meilleures offres, économies |
 | `/offres` | toutes les offres (tri, recherche sans accents, export CSV) et simulateur de voyage |
 | `/qualite` | contrôle des imports, contrôles métier, choix assumés |
@@ -75,8 +76,12 @@ Les captures sont prises sur un serveur neuf, juste après la publication du fic
 
 ## Au-delà du sujet
 
+- **Un accueil qui se lit d'un coup d'œil.** Le sujet décrit un outil pour l'équipe qui importe les
+  fichiers chaque jour : l'accueil montre d'abord les six points, puis l'état du dernier import
+  (fichiers lus, lignes rejetées), un histogramme des prix où les offres à plus de 100 € sont
+  comptées, et trois constats. Le reste vit sur les autres pages.
 - **Constats « À retenir »**, calculés sur la sélection en cours. Chacun n'apparaît que si les
-  données le justifient.
+  données le justifient, du plus simple au plus technique.
 - **Économies.** Un forfait, c'est une destination, un volume et une durée. Sur 1 113 forfaits,
   1 033 sont vendus par au moins deux fournisseurs. Le plus gros écart est de 60,37 € (Europe
   illimité 30 jours : 94,26 € chez Ubigi, 154,63 € chez aloSIM).
@@ -97,6 +102,12 @@ Les captures sont prises sur un serveur neuf, juste après la publication du fic
 - **Identité MyBestSim** relevée sur mybestsim.com : police Poppins hébergée sur le site, bleu
   `#007bff`, filtres en pastilles, cartes arrondies, bouton principal rouge. Thème clair par
   défaut, sombre bleu nuit en option.
+- **Logos des fournisseurs**, comme sur mybestsim.com : dans la répartition de l'accueil, les
+  classements de `/analyse`, le tableau des offres et le simulateur. Ce sont 17 images WebP de
+  64 px (12,9 Ko en tout) servies par le site, reprises de mybestsim.com ou, à défaut, du site
+  officiel du fournisseur. `bun run logos` les régénère depuis les sources listées dans
+  `scripts/logos.ts`. Les logos restent la propriété de leurs marques. Truphone, devenu 1GLOBAL,
+  n'a plus de logo en ligne : il garde son initiale, comme tout fournisseur ajouté par un import.
 
 ![Aperçu d'un import](docs/screenshots/import.png)
 
@@ -216,7 +227,7 @@ est une page du même site, rendue au build. La démarche complète est dans
 - **La longueur vient de la concurrence.** Le sujet ne donne pas de nombre de mots. J'ai relevé les
   pages qui sortent sur les requêtes visées, puis [`scripts/serp-measure.ts`](scripts/serp-measure.ts)
   a mesuré leur HTML : sur 12 pages concurrentes, la médiane est de 2 140 mots et de 9 H2, la moitié
-  seulement a un tableau et moins de la moitié une FAQ. L'article fait environ 3 000 mots, avec
+  seulement a un tableau et moins de la moitié une FAQ. L'article fait environ 3 200 mots, avec
   4 tableaux et une FAQ de 7 questions.
 - **MyBestSim avait déjà 4 articles sur la croisière.** Un cinquième aurait pu leur prendre leur
   trafic. L'article est donc la page pilier du sujet : il répond à la question générale, puis renvoie
@@ -250,8 +261,8 @@ et uniques, une canonical égale à sa propre URL, et sa présence dans le sitem
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 198 tests dans 36 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 72 tests dans 7 fichiers | KPI sans JavaScript, filtres et URL, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Unitaire | `bun test`, 208 tests dans 38 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Navigateur | Playwright, 76 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix, logos des fournisseurs, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
 | Oracles | 23 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 
@@ -338,6 +349,7 @@ bun run checks:live  # le site en ligne, après un déploiement
 bun run e2e          # build + Playwright (installer d'abord Chromium : bunx playwright install chromium)
 bun run import --data-dir /tmp/vol data/airalo.csv      # import en ligne de commande
 bun run screenshots http://127.0.0.1:4322 <jeton>       # régénère les captures de ce README
+bun run logos                                          # retélécharge les logos des fournisseurs
 bun scripts/serp-measure.ts                            # remesure les pages concurrentes de l'article
 ```
 
@@ -353,7 +365,8 @@ src/directives/       directive d'hydratation client:afterpaint
 src/workers/          Web Worker du catalogue en direct
 src/pages/            pages (/, /analyse, /offres, /qualite, /import, /blog/…) et endpoints JSON/CSV
 server/               service d'ingestion (API, inbox, releases, bac à sable, webhook, sécurité)
-scripts/              validation, rapport d'import, CLI d'import, smoke test, captures, mesure SEO
+scripts/              validation, rapport d'import, CLI d'import, smoke test, captures, logos, mesure SEO
+public/logos/         logos des fournisseurs (bun run logos)
 e2e/                  tests Playwright
 docker/, Dockerfile   images web (Caddy) et ingest (Bun)
 deploy/               services Docker Compose et bloc Caddy du VPS
@@ -406,7 +419,8 @@ qui engagent le projet sont les miens :
 - garder cette architecture plutôt qu'une autre implémentation, détaillée plus bas ;
 - recréer le dépôt avec un historique propre, et garder l'URL `mybestsim.sbonneau.xyz` ;
 - ouvrir un bac à sable public, pour que le parcours d'import se teste sans jeton ;
-- passer l'article en pleine largeur, comme le reste du site.
+- passer l'article en pleine largeur, comme le reste du site ;
+- afficher le logo de chaque fournisseur, comme le fait mybestsim.com.
 
 J'ai aussi relevé des défauts que l'agent n'avait pas vus, comme le curseur qui ne se changeait
 pas en main sur les boutons, ou l'article enfermé dans une colonne étroite. C'est aussi à ma
@@ -416,9 +430,10 @@ demande que l'agent a audité le site en ligne, ce qui a révélé le défaut d'
 **Pour l'article**, l'agent a fait la recherche (moteur de recherche web, lecture des pages
 concurrentes et des pages de MyBestSim), écrit l'outil de mesure et rédigé le texte. Il a cherché
 puis installé deux skills spécialisés, `seo-audit` et `ai-seo`, dont il a suivi la liste de
-contrôle d'une nouvelle page. Chaque chiffre a été relu contre sa source : quand deux sources se
-contredisaient, comme sur la distance réglementaire des réseaux de bord (2 ou 4 milles selon les
-textes), le chiffre a été retiré plutôt que choisi au hasard.
+contrôle d'une nouvelle page. Chaque chiffre a été relu contre sa source. Une seconde relecture, le
+28 octobre, est remontée aux textes officiels : la distance réglementaire des réseaux de bord, d'abord
+retirée parce que deux sources disaient 2 ou 4 milles, est en fait de 2 milles en 2G et de 4 milles en
+3G, 4G et 5G (décision 2024/340), et l'article la donne maintenant.
 
 ### Ce que l'IA a raté, et comment ça a été rattrapé
 
@@ -460,6 +475,12 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Les scripts de l'îlot se téléchargeaient avant le premier affichage, qui n'en a pas besoin, et retardaient le plus grand élément de la page | audit PageSpeed, puis hydratation après le premier affichage ; un premier essai avec `requestAnimationFrame` partait trop tôt, avant que l'image soit à l'écran |
 | Sur `/qualite`, la phrase d'introduction changeait à l'arrivée des données en direct et décalait la page (0,10) | audit PageSpeed, puis une phrase identique dans les deux cas |
 | Le sommaire de l'article lisait la position des titres pendant le chargement, ce qui forçait la mise en page de tout l'article avant le premier affichage (107 ms) | oracle Lighthouse en ligne (98 sur mobile), puis lecture déplacée après le premier affichage |
+| Sur téléphone, le premier écran de l'accueil ne montrait que deux des six points du sujet : le titre, un paragraphe et sept filtres passaient avant | revue de l'accueil à ma demande, puis un oracle qui mesure la position de chaque point, lancé d'abord sur l'ancienne version, où il échoue |
+| L'accueil parlait du test plutôt qu'au lecteur (« les cinq premiers indicateurs demandés », « rebuild », « jeu initial ») et annonçait « 578 points à vérifier » sans les expliquer | même revue ; textes réécrits, la carte qualité commence par le nombre de lignes rejetées |
+| L'article attribuait à JeChange le coût de 100 Mo (970 à 1 584 €), alors que c'est notre calcul à partir de ses tarifs | seconde relecture de chaque chiffre contre sa source |
+| Le plafond de 50 € était cité depuis Your Europe, qui n'en parle pas pour les bateaux ; la vraie source est le règlement (UE) 2022/612, qui prévoit aussi une exception | même relecture, avec le texte du règlement |
+| L'exemple MSC multipliait le prix par jour par 7 pour « une croisière de 7 nuits », qui compte souvent 8 jours | même relecture |
+| Les premiers logos d'Airalo, de Maya Mobile et d'Ubigi étaient des logotypes illisibles à 20 px, et celui trouvé pour Truphone était celui de 1GLOBAL | planche d'aperçu avant intégration ; icônes officielles à la place, initiale pour Truphone |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de

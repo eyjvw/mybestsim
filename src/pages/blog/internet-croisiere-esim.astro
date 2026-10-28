@@ -61,6 +61,7 @@ const SOURCES = {
   yourEurope:
     "https://europa.eu/youreurope/citizens/consumers/internet-telecoms/mobile-roaming-costs/index_fr.htm",
   mcv: "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=OJ%3AL_202400340",
+  roaming: "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX%3A32022R0612",
   jechange:
     "https://www.jechange.fr/telecom/mobile/news/itinerance-maritime-10-16-euros-megaoctet-ferry-reglage-embarquer",
   msc: "https://www.croisieres.fr/blog-voyage/msc-croisieres-forfaits-wifi-internet/",
@@ -282,8 +283,9 @@ const TOC = [
         satellite. Des opérateurs spécialisés comme <a href={SOURCES.telenor}>Telenor Maritime</a> l'exploitent, avec
         des accords d'itinérance passés avec les opérateurs mobiles : pour votre forfait, c'est de l'itinérance,
         facturée hors forfait. Le droit européen interdit à ces réseaux
-        d'émettre trop près des côtes, pour ne pas brouiller les réseaux terrestres (<a href={SOURCES.mcv}>décision d'exécution (UE) 2024/340</a>) : ils prennent donc le relais quand la côte
-        s'éloigne. Ce réseau est pratique pour un appel urgent, mais c'est aussi <strong>le plus cher des trois</strong>.
+        d'émettre à moins de 2 à 4 milles marins des côtes (4 à 7 km) selon la technologie, pour ne pas brouiller
+        les réseaux terrestres (<a href={SOURCES.mcv}>décision d'exécution (UE) 2024/340</a>) : ils prennent donc le
+        relais quand la côte s'éloigne. Ce réseau est pratique pour un appel urgent, mais c'est aussi <strong>le plus cher des trois</strong>.
       </p>
 
       <h3>🛰️ Partout à bord : le Wi-Fi par satellite</h3>
@@ -317,8 +319,8 @@ const TOC = [
         </table>
       </div>
       <p>
-        Pour une croisière de 7 nuits chez MSC, le forfait de base revient déjà à <strong>{formatEur(mscWeek)} pour un
-        seul téléphone</strong>. Les prix changent selon le navire, la date et la durée : vérifiez le tarif de votre
+        Pour 7 jours de croisière chez MSC, le forfait de base revient déjà à <strong>{formatEur(mscWeek)} pour un
+        seul téléphone</strong>, et une croisière de 7 nuits compte souvent 8 jours. Les prix changent selon le navire, la date et la durée : vérifiez le tarif de votre
         départ dans l'espace client de la compagnie avant de réserver.
       </p>
       <p class="tip">
@@ -347,10 +349,12 @@ const TOC = [
         </table>
       </div>
       <p>
-        À ces prix, 100 Mo de données coûtent entre <strong>{formatEurRound(cheapestRoaming)} et {formatEurRound(dearestRoaming)}</strong> (<a href={SOURCES.jechange}>source : JeChange</a>), et une seule mise à jour d'application en arrière-plan
+        À ces prix, 100 Mo de données coûtent entre <strong>{formatEurRound(cheapestRoaming)} et {formatEurRound(dearestRoaming)}</strong> (calcul à partir des tarifs relevés par <a href={SOURCES.jechange}>JeChange</a>), et une seule mise à jour d'application en arrière-plan
         peut dépasser ce volume. Les garde-fous existent mais ne suffisent pas : votre opérateur vous envoie un SMS
-        d'alerte à l'entrée dans la zone, et <a href={SOURCES.yourEurope}>le droit européen</a> prévoit de suspendre
-        l'itinérance quand les frais atteignent 50 €, sauf si vous avez accepté d'aller au-delà. Le plus simple reste de <strong>ne jamais laisser votre ligne principale se connecter au réseau du
+        d'alerte à l'entrée dans la zone, et le <a href={SOURCES.roaming}>règlement (UE) 2022/612</a> sur l'itinérance
+        (article 14) impose de couper les données quand les frais atteignent 50 € dans le mois, sauf si vous avez
+        accepté d'aller au-delà. Cette coupure n'est pas garantie : elle ne s'applique pas quand le réseau du navire ne
+        permet pas de suivre votre consommation en temps réel. Le plus simple reste de <strong>ne jamais laisser votre ligne principale se connecter au réseau du
         navire</strong>.
       </p>
       <p class="tip">
@@ -554,9 +558,10 @@ const TOC = [
         <ul>
           <li><a href={SOURCES.yourEurope}>Your Europe, « Frais d'itinérance mobile »</a>, Commission européenne, vérifié le 7 janvier 2026.</li>
           <li><a href={SOURCES.mcv}>Décision d'exécution (UE) 2024/340</a> sur les services de communications mobiles à bord des navires, 22 janvier 2024.</li>
+          <li><a href={SOURCES.roaming}>Règlement (UE) 2022/612</a> sur l'itinérance, articles 13 et 14 (réseaux non terrestres, plafond de 50 €), 6 avril 2022.</li>
           <li><a href={SOURCES.jechange}>JeChange, « Itinérance maritime : 10 à 16 € le mégaoctet à bord des ferries »</a>, 10 octobre 2026.</li>
           <li><a href={SOURCES.msc}>Croisieres.fr, forfaits Wi-Fi de MSC Croisières</a>, mis à jour le 10 juin 2026.</li>
-          <li><a href={SOURCES.voom}>CruisePrism, prix de VOOM chez Royal Caribbean</a>, septembre 2026.</li>
+          <li><a href={SOURCES.voom}>CruisePrism, prix de VOOM chez Royal Caribbean</a>, 14 septembre 2026, mis à jour le 9 octobre 2026.</li>
           <li><a href={SOURCES.carnival}>Carnival Corporation, communiqué sur Starlink pour toute la flotte</a> (diffusé par 3BL Media), 14 mai 2024.</li>
           <li><a href={SOURCES.royal}>Royal Caribbean Group, communiqué sur Starlink pour toute la flotte</a>, 30 août 2022.</li>
           <li><a href={SOURCES.gigsky}>GigSky, eSIM pour les bateaux de croisière</a>, consulté le 26 octobre 2026.</li>

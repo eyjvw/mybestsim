@@ -1,4 +1,4 @@
-import { formatEur, formatEurPerGb, formatInt, formatPct, formatTier } from "./format";
+import { formatEur, formatEurPerGb, formatInt, formatPct, formatTier, planLabel } from "./format";
 import type { Stats } from "./stats";
 
 export interface Insight {
@@ -10,14 +10,12 @@ export interface Insight {
 /** Price differences below this ratio are reported as "no premium". */
 const SAME_PRICE_TOLERANCE = 0.02;
 
-const planLabel = (p: { countryName: string; dataGb: number | null; validityDays: number }) =>
-  `${p.countryName} ${formatTier(p.dataGb)} ${p.validityDays} j`;
-
 /**
  * Plain-language findings derived from the current selection. Each one is only stated when
- * the data supports it, so the list follows the filters instead of repeating fixed copy.
+ * the data supports it, so the list follows the filters instead of repeating fixed copy. They
+ * come in reading order: the simplest first, the one that needs the most explaining last.
  */
-export function buildInsights(s: Stats, limit = 4): Insight[] {
+export function buildInsights(s: Stats, limit = 3): Insight[] {
   const out: Insight[] = [];
   const m = s.market;
 
@@ -27,14 +25,6 @@ export function buildInsights(s: Stats, limit = 4): Insight[] {
       id: "gap",
       title: `Jusqu'à ${formatEur(gap.max - gap.min)} d'écart pour le même forfait`,
       detail: `${planLabel(gap)} : ${formatEur(gap.min)} chez ${gap.cheapest.provider}, ${formatEur(gap.max)} chez ${gap.priciest.provider}. Comparer paie.`,
-    });
-  }
-
-  if (s.total > 1 && m.efficient.count < s.total) {
-    out.push({
-      id: "dominated",
-      title: `${formatPct(1 - m.efficient.share)} des offres sont battues par une autre`,
-      detail: `Pour ${formatInt(s.total - m.efficient.count)} offres, la même destination propose moins cher avec au moins autant de data, de durée, de réseau et de recharge. Seules ${formatInt(m.efficient.count)} valent d'être mises en avant.`,
     });
   }
 
@@ -59,7 +49,7 @@ export function buildInsights(s: Stats, limit = 4): Insight[] {
       title: same
         ? "La 5G ne coûte pas plus cher que la 4G"
         : `La 5G coûte ${formatPct(Math.abs(ratio - 1))} ${ratio > 1 ? "de plus" : "de moins"}`,
-      detail: `Sur ${formatInt(m.networkPremium.plans)} forfaits vendus dans les deux réseaux, le prix médian 5G vaut ${formatPct(ratio)} du prix 4G.`,
+      detail: `Sur ${formatInt(m.networkPremium.plans)} forfaits vendus en 4G et en 5G, la 5G coûte en médiane ${formatPct(ratio)} du prix de la 4G.`,
     });
   }
 
@@ -79,6 +69,14 @@ export function buildInsights(s: Stats, limit = 4): Insight[] {
       id: "per-gb",
       title: `Le Go coûte ${Math.round(small.median / (large.median / 50))} fois moins cher en 50 Go qu'en 1 Go`,
       detail: `${formatEurPerGb(small.median)} en 1 Go contre ${formatEurPerGb(large.median / 50)} en 50 Go (prix médians).`,
+    });
+  }
+
+  if (s.total > 1 && m.efficient.count < s.total) {
+    out.push({
+      id: "dominated",
+      title: `${formatPct(1 - m.efficient.share)} des offres sont battues par une autre`,
+      detail: `Pour ${formatInt(s.total - m.efficient.count)} offres, la même destination propose moins cher avec au moins autant de data, de durée, de réseau et de recharge. Seules ${formatInt(m.efficient.count)} valent d'être mises en avant.`,
     });
   }
 

@@ -17,6 +17,7 @@ import {
   formatInt,
   formatPct,
   formatTier,
+  rangeLabel,
 } from "../lib/format";
 import { buildInsights } from "../lib/insights";
 import { loadLive } from "../lib/live-client";
@@ -35,11 +36,9 @@ import { Insights } from "./Insights";
 import { KpiCard, KpiValue } from "./KpiCard";
 import { Market } from "./Market";
 import { ProductTable } from "./ProductTable";
+import { ProviderLogo } from "./ProviderLogo";
 import { Quality } from "./Quality";
 import { Panel, Section } from "./Section";
-
-const offerLabel = (p: Product) =>
-  `${p.countryName} ${formatTier(p.dataGb)} ${p.validityDays} j (${p.provider})`;
 
 interface Props {
   /** Stats of the full catalog, computed at build time (first paint, no JS needed). */
@@ -68,34 +67,49 @@ const leaveSandbox = () => {
   return `${pathname}${withSandbox(search, false)}${hash}`;
 };
 
-/** Where the figures come from: the last import (live or sandbox) or the build snapshot. */
+const day = (iso: string) =>
+  new Date(iso).toLocaleDateString("fr-FR", { dateStyle: "long", timeZone: "Europe/Paris" });
+
+/**
+ * Where the figures come from: the last import (live or sandbox) or the files of the build.
+ * Rendered from the first paint with the build's files, then with the live import: both texts
+ * take two lines on a phone and one on a wide screen, so the page does not move.
+ */
 function DataSource({
   live,
   builtAt,
   sandbox,
+  quality,
 }: {
   live: LiveCatalog | null;
   builtAt: string;
   sandbox: boolean;
+  quality: QualityReport;
 }) {
-  if (!live) return null;
-  const origin = (v: NonNullable<LiveCatalog["version"]>) =>
-    v.source === "seed" ? "jeu initial" : v.source === "inbox" ? "dépôt fournisseur" : "API";
+  const rejected = quality.rejected.length;
+  const files = `${formatInt(quality.files)} fichiers lus, ${formatInt(rejected)} ${rejected > 1 ? "lignes rejetées" : "ligne rejetée"}`;
+  const via = (v: NonNullable<LiveCatalog["version"]>) =>
+    v.source === "inbox"
+      ? ", déposé par un fournisseur"
+      : v.source === "api"
+        ? ", publié par API"
+        : "";
+  const imported = live?.source === "live" && live.version ? live.version : null;
   return (
     <span
-      className="mt-1.5 flex items-start gap-2 text-xs text-ink-3"
-      data-source={live.source}
+      className="mt-1.5 flex min-h-[2.5em] items-start gap-2 text-xs leading-[1.25] text-ink-3 sm:min-h-0"
+      data-source={live?.source ?? "build"}
       data-sandbox={sandbox ? "" : undefined}
     >
       <span
         aria-hidden="true"
-        className={`mt-1 size-2 shrink-0 rounded-full ${live.source !== "live" ? "bg-rule" : sandbox ? "bg-warn" : "bg-good"}`}
+        className={`mt-0.5 size-2 shrink-0 rounded-full ${!imported ? "bg-rule" : sandbox ? "bg-warn" : "bg-good"}`}
       />
       {sandbox ? (
         <span>
-          {live.source === "live" && live.version
-            ? `Bac à sable : import du ${when(live.version.importedAt)} (${origin(live.version)}). Données de démonstration, remises à zéro chaque nuit.`
-            : `Bac à sable indisponible : instantané du build du ${when(builtAt)}.`}{" "}
+          {imported
+            ? `Bac à sable : import du ${when(imported.importedAt)}${via(imported)}. Données de démonstration, remises à zéro chaque nuit.`
+            : `Bac à sable indisponible : fichiers du ${day(builtAt)}.`}{" "}
           <a
             className="font-semibold text-accent underline-offset-2 hover:underline"
             href={leaveSandbox()}
@@ -103,10 +117,15 @@ function DataSource({
             Revenir aux données en ligne
           </a>
         </span>
-      ) : live.source === "live" && live.version ? (
-        `Données en direct : import du ${when(live.version.importedAt)} (${origin(live.version)}), sans rebuild du site.`
+      ) : imported ? (
+        <span>
+          Données en direct : import du {when(imported.importedAt)}
+          {via(imported)} · {files}
+        </span>
       ) : (
-        `Instantané du build du ${when(builtAt)} (service d'ingestion non joignable).`
+        <span>
+          Fichiers fournisseurs du {day(builtAt)} · {files}
+        </span>
       )}
     </span>
   );
@@ -209,7 +228,7 @@ export default function Dashboard({
   const stale = filters !== deferred;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       {sandbox && (
         <div
           role="status"
@@ -249,24 +268,21 @@ export default function Dashboard({
         </p>
       )}
 
-      <div className={`space-y-12 transition-opacity ${stale ? "opacity-60" : ""}`}>
+      <div className={`space-y-10 transition-opacity sm:space-y-12 ${stale ? "opacity-60" : ""}`}>
         {view === "overview" && (
           <>
             <Section
               id="kpis"
-              title="Indicateurs clés"
+              title="Les chiffres clés"
               description={
-                <>
-                  Les cinq premiers indicateurs demandés. Ils se recalculent selon les filtres.
-                  <DataSource live={live} builtAt={builtAt} sandbox={sandbox} />
-                </>
+                <DataSource live={live} builtAt={builtAt} sandbox={sandbox} quality={quality} />
               }
             >
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 xl:grid-cols-6">
                 <KpiCard
                   index={1}
                   label="Cartes eSIM"
-                  footnote={`${formatInt(s.byProvider.length)} fournisseurs · ${formatInt(s.bonus.coverage.destinations)} destinations`}
+                  footnote={`${formatInt(s.bonus.coverage.destinations)} destinations : ${formatInt(s.bonus.coverage.countries)} pays et ${formatInt(s.bonus.coverage.regions)} régions`}
                 >
                   <KpiValue kpi="total" value={s.total}>
                     {formatInt(s.total)}
@@ -274,7 +290,7 @@ export default function Dashboard({
                 </KpiCard>
                 <KpiCard
                   index={2}
-                  label="Produits à plus de 100 €"
+                  label="Produits à plus de 100 €"
                   footnote={`${formatPct(s.over100.share)} du catalogue`}
                 >
                   <KpiValue kpi="over100" value={s.over100.count}>
@@ -286,7 +302,7 @@ export default function Dashboard({
                   label="Fourchette de prix"
                   footnote={
                     s.price.cheapest && s.price.priciest
-                      ? `${offerLabel(s.price.cheapest)} → ${offerLabel(s.price.priciest)}`
+                      ? rangeLabel(s.price.cheapest, s.price.priciest)
                       : undefined
                   }
                 >
@@ -310,7 +326,7 @@ export default function Dashboard({
                   label="Data moyenne par carte"
                   footnote={
                     s.data.unlimited > 0
-                      ? `Hors ${formatInt(s.data.unlimited)} offres illimitées (${formatPct(s.total ? s.data.unlimited / s.total : 0)}), sans volume chiffré`
+                      ? `Sans les ${formatInt(s.data.unlimited)} offres illimitées, qui n'ont pas de volume`
                       : "Toutes les offres ont un volume chiffré"
                   }
                 >
@@ -321,56 +337,97 @@ export default function Dashboard({
                 <KpiCard
                   index={5}
                   label="Prix moyen"
-                  footnote={`Médiane : ${formatEur(s.price.median)}`}
+                  footnote={`La moitié des offres coûte moins de ${formatEur(s.price.median)} (médiane)`}
                 >
                   <KpiValue kpi="avg-price" value={s.price.avg}>
                     {formatEur(s.price.avg)}
                   </KpiValue>
                 </KpiCard>
+                <KpiCard
+                  index={6}
+                  label="Répartition par fournisseur"
+                  footnote={
+                    s.byProvider[0] ? (
+                      <>
+                        {s.byProvider[0].provider} en tête, {formatInt(s.byProvider[0].count)}{" "}
+                        offres ·{" "}
+                        <a
+                          href="#providers"
+                          className="font-medium text-accent underline-offset-2 hover:underline"
+                        >
+                          voir le détail
+                        </a>
+                      </>
+                    ) : undefined
+                  }
+                >
+                  <KpiValue kpi="providers" value={s.byProvider.length}>
+                    {formatInt(s.byProvider.length)}
+                  </KpiValue>{" "}
+                  <span className="text-base font-semibold">
+                    fournisseur{s.byProvider.length > 1 ? "s" : ""}
+                  </span>
+                </KpiCard>
               </div>
-            </Section>
-
-            <Section
-              id="insights"
-              title="À retenir"
-              description="Constats calculés sur la sélection en cours : ils changent avec les filtres."
-            >
-              <Insights insights={insights} />
             </Section>
 
             {live?.changes && (
               <Section
                 id="changes"
                 title="Depuis le dernier import"
-                description="Ce que le dernier fichier publié a changé dans le catalogue, calculé par le service d'ingestion à la publication."
+                description="Ce que le dernier fichier publié a changé dans le catalogue : offres ajoutées, retirées, prix modifiés."
               >
                 <Changes changes={live.changes} />
               </Section>
             )}
 
-            <Section
-              id="providers"
-              index={6}
-              title="Répartition par fournisseur"
-              description="Nombre de cartes proposées par chaque fournisseur, et sa part du catalogue."
-            >
-              <Panel
-                title={`${formatInt(s.byProvider.length)} fournisseurs, triés par nombre de cartes`}
-              >
-                <BarList
-                  wide
-                  caption="Nombre de cartes par fournisseur"
-                  items={s.byProvider.map((p) => ({
-                    label: p.provider,
-                    value: p.count,
-                    display: formatInt(p.count),
-                    detail: formatPct(p.share),
-                  }))}
-                />
-              </Panel>
-            </Section>
+            <div className="grid gap-x-6 gap-y-10 sm:gap-y-12 lg:grid-cols-2">
+              <Section id="providers" index={6} title="Répartition par fournisseur">
+                <Panel title="Nombre de cartes et part du catalogue">
+                  <BarList
+                    caption="Nombre de cartes par fournisseur"
+                    items={s.byProvider.map((p) => ({
+                      label: p.provider,
+                      icon: <ProviderLogo provider={p.provider} />,
+                      value: p.count,
+                      display: formatInt(p.count),
+                      detail: formatPct(p.share),
+                    }))}
+                  />
+                </Panel>
+              </Section>
 
-            <Explore stats={s} audit={audit} />
+              <div className="min-w-0 space-y-10 sm:space-y-12">
+                <Section
+                  id="prices"
+                  title="Les prix en un coup d'œil"
+                  description={`La moitié des offres coûte moins de ${formatEur(s.price.median)} ; ${formatInt(s.over100.count)} dépassent 100 €.`}
+                >
+                  <Panel title="Nombre d'offres par prix">
+                    <Histogram
+                      caption="Nombre d'offres par tranche de prix de 10 €"
+                      bins={s.bonus.distribution}
+                      threshold={{ value: 100, over: s.over100.count }}
+                      markers={
+                        s.price.median !== null
+                          ? [{ label: "Médiane", short: "méd.", value: s.price.median }]
+                          : []
+                      }
+                    />
+                  </Panel>
+                </Section>
+
+                <Section
+                  id="insights"
+                  title="À retenir"
+                  description="Calculés sur les offres affichées : ils suivent les filtres."
+                >
+                  <Insights insights={insights} stacked />
+                </Section>
+              </div>
+            </div>
+
+            <Explore stats={s} quality={quality} />
           </>
         )}
 
@@ -391,6 +448,7 @@ export default function Dashboard({
                     caption="Prix médian au Go par fournisseur"
                     items={s.bonus.valueByProvider.map((v) => ({
                       label: v.provider,
+                      icon: <ProviderLogo provider={v.provider} />,
                       value: v.medianEurPerGb,
                       display: formatEurPerGb(v.medianEurPerGb),
                       detail: `${formatInt(v.offers)} off.`,
