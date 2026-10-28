@@ -56,4 +56,23 @@ test.describe("trip finder", () => {
       "Aucune offre ne couvre ce séjour",
     );
   });
+
+  test("the result links to the destination's page on mybestsim.com", async ({ page }) => {
+    await page.goto("/offres");
+    await hydrated(page);
+    const link = page.locator("[data-finder-result] [data-mybestsim-link]");
+    await expect(link).toHaveAttribute(
+      "href",
+      "https://mybestsim.com/fr/comparaison-meilleure-carte-esim-italie/",
+    );
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", "noopener");
+    await expect(link).toHaveAccessibleName(/Comparer sur MyBestSim.*nouvel onglet/);
+    // Maroc moved to another address pattern on mybestsim.com.
+    await page.locator('[data-finder-form] select[name="destination"]').selectOption("MA");
+    await expect(link).toHaveAttribute(
+      "href",
+      "https://mybestsim.com/fr/meilleure-carte-esim-maroc/",
+    );
+  });
 });

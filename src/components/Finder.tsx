@@ -7,9 +7,11 @@ import {
   USAGE_PROFILES,
 } from "../lib/finder";
 import { formatEur, formatInt, formatTier } from "../lib/format";
+import { mybestsimUrl } from "../lib/mybestsim";
 import { REGION_NAMES } from "../lib/regions";
 import { DATA_TIERS, VALIDITIES } from "../lib/stats";
 import type { Product } from "../lib/types";
+import { MybestsimLink } from "./Opportunities";
 import { ProviderLogo } from "./ProviderLogo";
 import { Panel } from "./Section";
 
@@ -40,6 +42,7 @@ export function Finder({ products, destinations }: Props) {
     setQ((prev) => ({ ...prev, [k]: v }));
   const result = useMemo(() => (products ? findPlans(products, q) : null), [products, q]);
   const destName = destinations.find((d) => d.code === q.destination)?.name ?? q.destination;
+  const destUrl = mybestsimUrl(q.destination);
   const best = result?.matches[0];
   const regionalSaving =
     best?.viaRegion && result?.cheapestLocal
@@ -199,15 +202,17 @@ export function Finder({ products, destinations }: Props) {
                   >
                     <span className="text-xs font-semibold text-accent tabular-nums">{i + 1}.</span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">
+                      <span className="block text-sm font-medium">
                         <ProviderLogo
                           provider={m.product.provider}
                           className="relative -top-px mr-1.5"
                         />
-                        {m.product.provider} · {formatTier(m.product.dataGb)} ·{" "}
-                        {m.product.validityDays} j
+                        {/* Wraps between parts on a phone, never inside one ("15 / j"). */}
+                        <span className="whitespace-nowrap">{m.product.provider}</span> ·{" "}
+                        <span className="whitespace-nowrap">{formatTier(m.product.dataGb)}</span> ·{" "}
+                        <span className="whitespace-nowrap">{m.product.validityDays} j</span>
                         {i === 0 && (
-                          <span className="ml-2 rounded-full bg-warn px-2 py-0.5 align-middle text-[10px] font-semibold text-[#0f172a] uppercase">
+                          <span className="ml-2 inline-block rounded-full bg-warn px-2 py-0.5 align-middle text-[10px] font-semibold whitespace-nowrap text-[#0f172a] uppercase">
                             Meilleur prix
                           </span>
                         )}
@@ -231,6 +236,14 @@ export function Finder({ products, destinations }: Props) {
                   </li>
                 ))}
               </ol>
+              {destUrl && (
+                <p className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line/70 pt-3 text-sm text-ink-2">
+                  <span>Toutes les offres {destName}, sur le comparateur :</span>
+                  <MybestsimLink url={destUrl} look="button">
+                    Comparer sur MyBestSim
+                  </MybestsimLink>
+                </p>
+              )}
             </>
           )}
         </div>

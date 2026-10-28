@@ -111,7 +111,7 @@ test.describe("dashboard", () => {
     const rows = page.locator("#providers li");
     await expect(rows).toHaveCount(providers.size);
     for (const row of await rows.all()) {
-      const name = await row.locator("[data-bar-label]").innerText();
+      const name = (await row.locator("[data-bar-label]").textContent()) ?? "";
       const logo = row.locator("[data-logo]");
       await expect(logo).toHaveAttribute("data-logo", name);
       if (name === "Truphone") {
@@ -124,6 +124,20 @@ test.describe("dashboard", () => {
         .poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
         .toBe(64);
     }
+  });
+
+  test("opportunities rank destinations by price gap and follow the filters", async ({ page }) => {
+    await page.goto("/analyse");
+    await hydrated(page);
+    const gaps = page.locator("[data-opportunity-gaps] li");
+    await expect(gaps).toHaveCount(8);
+    const values = await gaps.evaluateAll((lis) => lis.map((li) => Number(li.dataset.gap)));
+    expect(values).toEqual([...values].sort((a, b) => b - a));
+    await expect(gaps.locator('[data-mybestsim-link^="https://mybestsim.com/fr/"]')).toHaveCount(8);
+    await page.goto("/analyse?destination=IT");
+    await hydrated(page);
+    await expect(gaps).toHaveCount(1);
+    await expect(gaps.first()).toHaveAttribute("data-opportunity", "IT");
   });
 
   test("offer rows carry the logo of their provider", async ({ page }) => {

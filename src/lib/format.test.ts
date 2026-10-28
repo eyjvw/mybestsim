@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { product } from "./fixtures";
 import {
+  formatDay,
   formatEur,
   formatEurPerGb,
   formatEurRound,
@@ -51,5 +52,10 @@ describe("format", () => {
     expect(rangeLabel(cheap, { ...dear, provider: "Ubigi" })).toBe(
       "Irlande 1 Go 7 j (aloSIM) → Europe Illimité 30 j (Ubigi)",
     );
+  });
+
+  test("a calendar day, whatever the time zone", () => {
+    expect(formatDay("2026-10-28")).toBe("28 octobre 2026");
+    expect(formatDay("2026-01-01")).toBe("1 janvier 2026");
   });
 });

@@ -19,6 +19,7 @@ const shots = [
   { name: "accueil-sombre", path: "/", width: 1440, height: 1500, dark: true },
   { name: "accueil-mobile", path: "/", width: 390, height: 1200 },
   { name: "analyse", path: "/analyse", width: 1440, height: 1700 },
+  { name: "opportunites", path: "/analyse", width: 1440, height: 1100, element: "#opportunities" },
   { name: "offres", path: "/offres", width: 1440, height: 1500 },
   { name: "qualite", path: "/qualite", width: 1440, height: 1500 },
   { name: "bac-a-sable", path: "/?bac=1", width: 1440, height: 1100 },
@@ -35,7 +36,18 @@ for (const s of shots) {
     await page.locator("[data-import-result]").waitFor();
   }
   await page.waitForTimeout(500);
-  await page.screenshot({ path: join(out, `${s.name}.png`) });
+  const file = join(out, `${s.name}.png`);
+  if (s.element) {
+    // Below the sticky filter bar, which would cover the section title.
+    await page.evaluate((sel) => {
+      const top = document.querySelector(sel).getBoundingClientRect().top;
+      window.scrollTo(0, window.scrollY + top - 180);
+    }, s.element);
+    await page.waitForTimeout(300);
+    const box = await page.locator(s.element).boundingBox();
+    const clip = { x: box.x - 24, y: box.y - 24, width: box.width + 48, height: box.height + 48 };
+    await page.screenshot({ path: file, clip });
+  } else await page.screenshot({ path: file });
   await page.close();
   console.log(`${out}/${s.name}.png`);
   if (s.sample && token) {

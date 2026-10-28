@@ -39,7 +39,7 @@ Il ajoute un service qui importe les fichiers du jour sans reconstruire le site.
 | 4. Data moyenne par carte | 14,49 Go (hors 653 offres illimitées) | accueil, carte 4 |
 | 5. Prix moyen global | 29,30 € (médiane 20,70 €) | accueil, carte 5 |
 | 6. Répartition par fournisseur | 18 fournisseurs, d'Airalo (722) à 4S eSIM (92) | accueil, carte 6 et section 6 |
-| 7. Statistiques bonus | prix au Go, paliers, distribution, économies, qualité | `/analyse`, `/qualite` |
+| 7. Statistiques bonus | prix au Go, paliers, distribution, économies, opportunités, qualité | `/analyse`, `/qualite` |
 
 Les six points tiennent dans le premier écran de l'accueil, sur un téléphone (390 × 844) comme sur un
 portable (1 440 × 900). Ils sont dans le HTML généré au build : la page les affiche avant même que le
@@ -52,7 +52,7 @@ par un script indépendant, voir [Qualité et tests](#qualité-et-tests).
 | Page | Contenu |
 | --- | --- |
 | `/` Accueil | points 1 à 6 dès le premier écran, répartition par fournisseur avec leurs logos, histogramme des prix avec le seuil de 100 €, trois constats « À retenir », dernier import, accès aux autres pages |
-| `/analyse` | point 7 : prix médian au Go, prix par palier, histogramme, profil des offres, couverture, meilleures offres, économies |
+| `/analyse` | point 7 : prix médian au Go, prix par palier, histogramme, profil des offres, couverture, meilleures offres, économies, opportunités pour MyBestSim |
 | `/offres` | toutes les offres (tri, recherche sans accents, export CSV) et simulateur de voyage |
 | `/qualite` | contrôle des imports, contrôles métier, choix assumés |
 | `/import` | aperçu d'un fichier fournisseur, puis publication dans le bac à sable (sans jeton) ou dans le catalogue (avec jeton) |
@@ -89,7 +89,13 @@ Les captures sont prises sur un serveur neuf, juste après la publication du fic
   cher et donne au moins autant (data, durée, réseau, recharge). Seules 1 836 offres sur 5 056 ne le
   sont pas.
 - **Simulateur « Quelle eSIM pour mon voyage ? »**, qui tient compte des forfaits régionaux
-  (Europe, Asie, Amérique du Nord, Monde) et peut estimer la data à partir de l'usage.
+  (Europe, Asie, Amérique du Nord, Monde) et peut estimer la data à partir de l'usage. Son
+  résultat renvoie vers la page de la destination sur mybestsim.com (« Comparer sur MyBestSim »).
+- **Opportunités pour MyBestSim** (`/analyse`), calculées sur la sélection : les destinations où
+  le prix d'un même forfait varie le plus d'un fournisseur à l'autre, c'est-à-dire les pages où un
+  comparateur rend le plus service. Chacune renvoie vers sa page sur mybestsim.com. Les 54
+  adresses (`src/lib/mybestsim.ts`) ont été relevées dans le sitemap de mybestsim.com et vérifiées
+  une par une le 28 octobre 2026.
 - **Contrôles métier**, qui ne bloquent pas mais signalent :
   - 219 produits identiques vendus sous plusieurs SKU par un même fournisseur ;
   - 8 prix atypiques ;
@@ -110,6 +116,8 @@ Les captures sont prises sur un serveur neuf, juste après la publication du fic
   n'a plus de logo en ligne : il garde son initiale, comme tout fournisseur ajouté par un import.
 
 ![Aperçu d'un import](docs/screenshots/import.png)
+
+![Opportunités pour MyBestSim : les destinations où les prix varient le plus pour un même forfait, avec leur page mybestsim.com](docs/screenshots/opportunites.png)
 
 ## Architecture
 
@@ -217,6 +225,9 @@ chaque choix avec sa justification.
 - La 5G ne coûte pas plus cher que la 4G : sur 795 forfaits vendus dans les deux réseaux, le prix
   médian 5G vaut 100,3 % du prix 4G.
 - Les meilleurs prix au Go par destination sont presque tous des offres 50 Go sur 7 jours.
+- C'est sur les forfaits régionaux que comparer sert le plus : pour un même forfait Monde,
+  Europe, Asie ou Amérique du Nord, l'écart médian entre le moins cher et le plus cher est de
+  3,64 à 5,10 €, environ 15 % du prix. Viennent ensuite la Croatie et le Royaume-Uni.
 
 ## Partie 2 : l'article SEO
 
@@ -261,8 +272,8 @@ et uniques, une canonical égale à sa propre URL, et sa présence dans le sitem
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 208 tests dans 38 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 76 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix, logos des fournisseurs, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Unitaire | `bun test`, 216 tests dans 40 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Navigateur | Playwright, 78 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix, logos des fournisseurs, opportunités et liens vers mybestsim.com, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
 | Oracles | 23 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 
@@ -420,7 +431,9 @@ qui engagent le projet sont les miens :
 - recréer le dépôt avec un historique propre, et garder l'URL `mybestsim.sbonneau.xyz` ;
 - ouvrir un bac à sable public, pour que le parcours d'import se teste sans jeton ;
 - passer l'article en pleine largeur, comme le reste du site ;
-- afficher le logo de chaque fournisseur, comme le fait mybestsim.com.
+- afficher le logo de chaque fournisseur, comme le fait mybestsim.com ;
+- relier le tableau de bord à l'activité de MyBestSim (opportunités, liens vers ses pages), parmi
+  les idées « métier » proposées par l'agent.
 
 J'ai aussi relevé des défauts que l'agent n'avait pas vus, comme le curseur qui ne se changeait
 pas en main sur les boutons, ou l'article enfermé dans une colonne étroite. C'est aussi à ma
@@ -481,6 +494,9 @@ L'agent se trompe. La méthode sert justement à le voir avant que ça arrive en
 | Le plafond de 50 € était cité depuis Your Europe, qui n'en parle pas pour les bateaux ; la vraie source est le règlement (UE) 2022/612, qui prévoit aussi une exception | même relecture, avec le texte du règlement |
 | L'exemple MSC multipliait le prix par jour par 7 pour « une croisière de 7 nuits », qui compte souvent 8 jours | même relecture |
 | Les premiers logos d'Airalo, de Maya Mobile et d'Ubigi étaient des logotypes illisibles à 20 px, et celui trouvé pour Truphone était celui de 1GLOBAL | planche d'aperçu avant intégration ; icônes officielles à la place, initiale pour Truphone |
+| Avec les logos, la première ligne du simulateur coupait « 15 j » et cachait le badge « Meilleur prix » sur téléphone | captures du lot suivant ; la ligne passe à la ligne entre ses parties, jamais au milieu |
+| Le premier classement des opportunités mesurait l'économie par rapport au prix médian : 0,6 à 2,1 €, trop peu pour départager les destinations | l'écart entre le moins cher et le plus cher, déjà utilisé ailleurs sur le site, sépare mieux les destinations |
+| L'agent a conclu que la Thaïlande, le Maroc et le Royaume-Uni n'avaient pas de page sur mybestsim.com, parce que leur adresse `comparaison-meilleure-carte-esim-…` répondait 410, et l'a affiché dans le tableau de bord | relecture de véracité demandée avant la PR : le sitemap de mybestsim.com liste leurs pages sous `meilleure-carte-esim-…` (200) ; le panneau a été retiré avant tout commit, et l'oracle vérifie maintenant chaque adresse dans le sitemap |
 
 **Deux implémentations du même besoin.** Une session de travail sur l'autre machine avait ouvert une
 PR d'import en SSR avec SQLite, pendant que celle-ci construisait la version actuelle. L'agent l'a repérée avant de
@@ -497,6 +513,8 @@ qu'on regarde vraiment. Chaque chiffre de ce README provient d'un script, pas d'
 ## Limites et suite
 
 - **Couverture des forfaits régionaux** : c'est une hypothèse, faute de donnée dans les CSV.
+- **Pages mybestsim.com** : la table des adresses date du 28 octobre 2026. Si MyBestSim déplace une
+  page, il faut la mettre à jour ; une destination inconnue de la table n'a simplement pas de lien.
 - **Article SEO** : publié ici et indexable ; s'il passe sur mybestsim.com, ajouter une canonical
   vers sa nouvelle URL.
 - Le détail des étapes restantes est dans [docs/ROADMAP.md](docs/ROADMAP.md).
