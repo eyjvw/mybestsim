@@ -283,6 +283,26 @@ test.describe("dashboard", () => {
     await expect(page.locator("#decisions")).toBeVisible();
   });
 
+  test("drop-down lists open rounded where the browser allows it, closed selects keep their size", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await hydrated(page);
+    const select = page.locator("#filter-controls select").first();
+    test.skip(
+      !(await page.evaluate(() => CSS.supports("appearance: base-select"))),
+      "this browser keeps its native list",
+    );
+    expect(await select.evaluate((s) => getComputedStyle(s).appearance)).toBe("base-select");
+    expect((await select.boundingBox())?.height).toBe(36);
+    const option = select.locator("option").nth(1);
+    expect(await option.evaluate((o) => getComputedStyle(o).borderRadius)).toBe("10px");
+    await select.click();
+    await expect(option).toBeVisible();
+    await option.click();
+    await expect(page).toHaveURL(/fournisseur=/);
+  });
+
   test("clickable controls show the hand cursor, disabled ones do not", async ({ page }) => {
     await page.goto("/offres");
     await hydrated(page);
