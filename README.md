@@ -79,7 +79,9 @@ Les captures sont prises sur un serveur neuf, juste après la publication du fic
 - **Un accueil qui se lit d'un coup d'œil.** Le sujet décrit un outil pour l'équipe qui importe les
   fichiers chaque jour : l'accueil montre d'abord les six points, puis l'état du dernier import
   (fichiers lus, lignes rejetées), un histogramme des prix où les offres à plus de 100 € sont
-  comptées, et trois constats. Le reste vit sur les autres pages.
+  comptées, et trois constats. Le reste vit sur les autres pages. Chaque colonne de l'histogramme
+  donne son nombre d'offres au survol, d'un tap sur téléphone ou au clavier (flèches), et
+  « Voir les données » garde le tableau complet.
 - **Constats « À retenir »**, calculés sur la sélection en cours. Chacun n'apparaît que si les
   données le justifient, du plus simple au plus technique.
 - **Économies.** Un forfait, c'est une destination, un volume et une durée. Sur 1 113 forfaits,
@@ -274,8 +276,8 @@ et uniques, une canonical égale à sa propre URL, et sa présence dans le sitem
 | Niveau | Outil | Ce qui est vérifié |
 | --- | --- | --- |
 | Schéma | zod (`bun run validate`) | 12 colonnes, types, devise EUR, réseau, cohérence volume et libellé, SKU unique. 0 rejet sur 5 056 lignes |
-| Unitaire | `bun test`, 216 tests dans 40 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
-| Navigateur | Playwright, 79 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix, logos des fournisseurs, opportunités et liens vers mybestsim.com, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
+| Unitaire | `bun test`, 221 tests dans 41 fichiers | chaque module de `src/lib` et du service, avec des chiffres de référence mesurés à part en Python |
+| Navigateur | Playwright, 81 tests dans 7 fichiers | KPI sans JavaScript, les six points visibles sans défiler sur téléphone, filtres et URL, histogramme des prix et son infobulle (souris, clavier, tap), logos des fournisseurs, opportunités et liens vers mybestsim.com, tableau, export, simulateur, import puis publication en production et dans le bac à sable, article, aucun scroll horizontal de 360 à 1 440 px, accessibilité axe (WCAG 2.1 AA) en clair et en sombre |
 | Oracles | 23 scripts dans `checks/` ([détail](checks/README.md)) | les chiffres affichés sont recalculés depuis les CSV bruts, sans réutiliser le code testé ; la CI en lance 17 à chaque PR (`bun run checks`) |
 | Conteneurs | CI | les images web et ingest démarrent ensemble ; publication à travers Caddy, en production et dans le bac à sable ; processus non-root ; données conservées après redémarrage |
 

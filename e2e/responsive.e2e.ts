@@ -72,4 +72,34 @@ test.describe("responsive layout", () => {
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator("#filter-controls")).toBeVisible();
   });
+
+  test("on a phone a tap shows a histogram column's count inside the chart, a second tap hides it", async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await hydrated(page);
+    const columns = page.locator("#prices [data-bin]");
+    const tip = page.locator("#prices [data-histogram-tip]");
+    const chart = await page.locator("#prices figure").boundingBox();
+    for (const i of [0, 7, (await columns.count()) - 1]) {
+      await columns.nth(i).tap();
+      await expect(tip).toHaveAttribute("data-histogram-tip", String(i));
+      const box = await tip.boundingBox();
+      expect(box && chart && box.x >= chart.x && box.x + box.width <= chart.x + chart.width).toBe(
+        true,
+      );
+    }
+    await columns.last().tap();
+    await expect(tip).toHaveCount(0);
+    await columns.nth(3).tap();
+    await page.locator("h1").tap();
+    await expect(tip).toHaveCount(0);
+    await ctx.close();
+  });
 });

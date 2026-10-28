@@ -150,6 +150,35 @@ test.describe("dashboard", () => {
     expect(new Set(srcs)).toEqual(new Set(["/logos/ubigi.webp"]));
   });
 
+  test("each histogram column shows its count on hover and keyboard focus, with one tab stop", async ({
+    page,
+    request,
+  }) => {
+    const prices = (await catalog(request)).map((p) => p.price);
+    const inRange = (from: number) => prices.filter((p) => p >= from && p < from + 10).length;
+    await page.goto("/");
+    await hydrated(page);
+    const columns = page.locator("#prices [data-bin]");
+    const tip = page.locator("#prices [data-histogram-tip]");
+    await expect(tip).toHaveCount(0);
+    await columns.nth(1).hover();
+    await expect(tip).toHaveAttribute("data-histogram-tip", "1");
+    await expect(tip).toContainText(`${new Intl.NumberFormat("fr-FR").format(inRange(10))} offres`);
+    await expect(tip).toContainText("10 – 20 €");
+    await page.mouse.move(0, 0);
+    await expect(tip).toHaveCount(0);
+
+    expect(await columns.evaluateAll((cs) => cs.filter((c) => c.tabIndex === 0).length)).toBe(1);
+    await columns.first().focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(columns.nth(1)).toBeFocused();
+    await expect(tip).toHaveAttribute("data-histogram-tip", "1");
+    await page.keyboard.press("End");
+    await expect(tip).toContainText("150 – 160 €");
+    await page.keyboard.press("Escape");
+    await expect(tip).toHaveCount(0);
+  });
+
   test("table search ignores accents and sorting puts the dearest first", async ({
     page,
     request,
