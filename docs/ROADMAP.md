@@ -20,7 +20,9 @@ dans [seo/ANALYSE.md](seo/ANALYSE.md).
 | Bac à sable | Publication sans jeton depuis `/import`, vue `?bac=1`, remise à zéro chaque nuit | #22 |
 | Entretien | Arrêt propre du serveur e2e, `CLAUDE.md` dans le vault, mises à jour des actions GitHub et d'axe-core, accessibilité de `/import`, captures | #18, #20, #12, #25, #26, #27 |
 | Lighthouse | Polices préchargées, plus de redirection, page 404, article indexable avec sitemap, accessibilité et CSP corrigées | #28 |
-| PageSpeed | Toutes les pages indexables, repère `<main>`, données de l'îlot réduites de 480 à 50 Ko, catalogue en direct calculé dans un Web Worker, hydratation après le premier affichage, CSS intégrée, oracle SEO, puis le sommaire de l'article qui forçait une mise en page avant l'affichage, et un oracle PageSpeed après déploiement | #29, #30 |
+| PageSpeed | Toutes les pages indexables, repère `<main>`, données de l'îlot réduites de 480 à 50 Ko, catalogue en direct calculé dans un Web Worker, hydratation après le premier affichage, CSS intégrée, oracle SEO, puis le sommaire de l'article qui forçait une mise en page avant l'affichage, et un oracle PageSpeed après déploiement | #29 à #32 |
+| Accueil et logos | Les six points du sujet dès le premier écran, téléphone compris ; histogramme des prix avec le seuil de 100 € ; logos des fournisseurs ; seconde vérification de l'article (règlement (UE) 2022/612, décision 2024/340) | #33 |
+| Opportunités | Destinations où le prix d'un même forfait varie le plus, liens vers les pages mybestsim.com depuis l'analyse et le simulateur | #34 |
 
 ## Ouvert
 

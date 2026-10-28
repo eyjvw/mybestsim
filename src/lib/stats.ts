@@ -1,5 +1,6 @@
 import { computeMarket, type MarketStats } from "./compare";
 import { groupBy, mean, median } from "./math";
+import { computeOpportunities, type Opportunities } from "./opportunities";
 import { REGION_CODES } from "./regions";
 import type { Network, Product } from "./types";
 
@@ -87,6 +88,7 @@ export interface Stats {
     distribution: HistogramBin[];
   };
   market: MarketStats;
+  opportunities: Opportunities;
 }
 
 export const eurPerGb = (p: Product): number | null => (p.dataGb ? p.price / p.dataGb : null);
@@ -187,5 +189,6 @@ export function computeStats(products: Product[], bestDealsLimit = 8): Stats {
       distribution: priceHistogram(products),
     },
     market: computeMarket(products),
+    opportunities: computeOpportunities(products),
   };
 }

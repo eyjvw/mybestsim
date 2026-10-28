@@ -35,6 +35,7 @@ import { Finder } from "./Finder";
 import { Insights } from "./Insights";
 import { KpiCard, KpiValue } from "./KpiCard";
 import { Market } from "./Market";
+import { Opportunities } from "./Opportunities";
 import { ProductTable } from "./ProductTable";
 import { ProviderLogo } from "./ProviderLogo";
 import { Quality } from "./Quality";
@@ -573,6 +574,14 @@ export default function Dashboard({
               description="Statistique bonus côté métier : pour un même forfait, l'écart entre fournisseurs, et qui est le moins cher le plus souvent."
             >
               <Market market={s.market} total={s.total} />
+            </Section>
+
+            <Section
+              id="opportunities"
+              title="Où MyBestSim peut gagner"
+              description="Statistique côté métier : les destinations où comparer rend le plus service, chacune avec sa page sur mybestsim.com. Calculé sur les offres affichées."
+            >
+              <Opportunities data={s.opportunities} />
             </Section>
           </>
         )}

@@ -86,7 +86,7 @@ if (import.meta.main) {
       .flatten({ background: "#ffffff" })
       .webp({ quality: 82 })
       .toFile(file);
-    console.log(`${slug}: ${(await Bun.file(file).size).toLocaleString("fr-FR")} octets`);
+    console.log(`${slug}: ${Bun.file(file).size.toLocaleString("fr-FR")} octets`);
     await Bun.sleep(1000); // one request at a time: some sites block bursts
   }
 }

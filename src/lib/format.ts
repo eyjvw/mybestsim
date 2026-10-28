@@ -19,6 +19,10 @@ export const formatPct = (n: number | null) => (n === null ? DASH : pct.format(n
 export const formatEurPerGb = (n: number | null) => (n === null ? DASH : `${dec.format(n)} €/Go`);
 export const formatTier = (gb: number | null) => (gb === null ? "Illimité" : `${gb} Go`);
 
+const day = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" });
+/** "2026-10-28" → "28 octobre 2026", the same on every time zone. */
+export const formatDay = (isoDate: string) => day.format(new Date(`${isoDate}T00:00:00Z`));
+
 interface Plan {
   countryName: string;
   dataGb: number | null;
