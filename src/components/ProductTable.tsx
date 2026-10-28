@@ -4,6 +4,7 @@ import { formatEur, formatEurPerGb, formatInt, formatTier } from "../lib/format"
 import { type SortDir as Dir, type SortKey, sortProducts } from "../lib/sort";
 import { eurPerGb } from "../lib/stats";
 import type { Product } from "../lib/types";
+import { ProviderLogo } from "./ProviderLogo";
 
 const PAGE_SIZE = 15;
 
@@ -124,6 +125,7 @@ export function ProductTable({ products, pendingTotal }: Props) {
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">{p.name}</span>
                 <span className="block truncate text-xs text-ink-2">
+                  <ProviderLogo provider={p.provider} size={16} className="relative -top-px mr-1" />
                   {p.provider} · {p.network}
                   {p.topUp ? " · rechargeable" : ""}
                 </span>
@@ -182,7 +184,12 @@ export function ProductTable({ products, pendingTotal }: Props) {
                     {p.topUp ? " · rechargeable" : ""}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-ink-2">{p.provider}</td>
+                <td className="px-3 py-2 text-ink-2">
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <ProviderLogo provider={p.provider} />
+                    {p.provider}
+                  </span>
+                </td>
                 <td className="px-3 py-2 text-ink-2">{p.countryName}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{formatTier(p.dataGb)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{p.validityDays} j</td>

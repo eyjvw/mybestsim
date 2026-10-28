@@ -1,5 +1,9 @@
+import type { ReactNode } from "react";
+
 export interface BarItem {
   label: string;
+  /** Shown before the label, such as a provider logo. */
+  icon?: ReactNode;
   value: number;
   /** Text shown at the end of the row. */
   display: string;
@@ -22,6 +26,10 @@ interface Props {
 export function BarList({ items, caption, wide = false }: Props) {
   const max = Math.max(...items.map((i) => i.value), 0);
   if (items.length === 0) return <p className="py-6 text-sm text-ink-3">Aucune donnée.</p>;
+  // An icon takes 26 px of the label column: widen it so names like "Maya Mobile" still fit.
+  const cols = items.some((i) => i.icon)
+    ? "grid-cols-[8rem_minmax(0,1fr)_auto] sm:grid-cols-[10.5rem_minmax(0,1fr)_8.5rem]"
+    : "grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:grid-cols-[9rem_minmax(0,1fr)_8.5rem]";
   return (
     <ul
       className={
@@ -32,10 +40,13 @@ export function BarList({ items, caption, wide = false }: Props) {
       {items.map((item) => (
         <li
           key={item.label}
-          className="grid grid-cols-[6.5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md px-1.5 py-1.5 hover:bg-surface-2 sm:grid-cols-[9rem_minmax(0,1fr)_8.5rem] sm:gap-3 sm:px-2"
+          className={`grid ${cols} items-center gap-2 rounded-md px-1.5 py-1.5 hover:bg-surface-2 sm:gap-3 sm:px-2`}
         >
-          <span className="truncate text-sm text-ink-2" title={item.label}>
-            {item.label}
+          <span className="flex min-w-0 items-center gap-1.5">
+            {item.icon}
+            <span className="truncate text-sm text-ink-2" title={item.label} data-bar-label>
+              {item.label}
+            </span>
           </span>
           <span className="h-2.5 rounded-r bg-track">
             <span

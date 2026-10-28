@@ -1,4 +1,4 @@
-import { formatEur, formatInt } from "../../lib/format";
+import { formatEur, formatEurRound, formatInt } from "../../lib/format";
 import type { HistogramBin } from "../../lib/stats";
 
 interface Marker {
@@ -8,18 +8,26 @@ interface Marker {
   value: number;
 }
 
+interface Threshold {
+  value: number;
+  /** Offers strictly above the value, printed on the shaded band. */
+  over: number;
+}
+
 interface Props {
   bins: HistogramBin[];
   caption: string;
   /** Reference values drawn as hairlines across the plot (median, mean). */
   markers?: Marker[];
+  /** Shades the range above a price (the brief's 100 €) and prints how many offers it holds. */
+  threshold?: Threshold;
 }
 
 /**
  * Price distribution: touching columns split by a 2px surface gap, one hue, a hairline per
  * reference value with its label in text ink, and the counts available as a table.
  */
-export function Histogram({ bins, caption, markers = [] }: Props) {
+export function Histogram({ bins, caption, markers = [], threshold }: Props) {
   if (bins.length === 0) return <p className="py-6 text-sm text-ink-3">Aucune donnée.</p>;
   const max = Math.max(...bins.map((b) => b.count));
   const top = bins[bins.length - 1].to;
@@ -29,9 +37,31 @@ export function Histogram({ bins, caption, markers = [] }: Props) {
   const ordered = [...markers].sort((a, b) => a.value - b.value);
 
   return (
-    <figure aria-label={caption}>
+    <figure
+      aria-label={caption}
+      data-price-histogram={threshold ? "" : undefined}
+      data-threshold={threshold?.value}
+      data-over={threshold?.over}
+    >
       <div className="relative">
         <div className="relative flex h-40 items-end gap-0.5 border-b border-rule pt-8">
+          {threshold && threshold.value < top && (
+            // The few offers above the threshold are too low to see as bars: the band and its
+            // count make them visible, and the count is the brief's KPI 2.
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-0 right-0 bottom-0 border-l border-dashed border-ink-2 bg-s2/10"
+              style={{ left: x(threshold.value) }}
+            >
+              <span className="absolute top-0 right-1 text-right text-[11px] leading-tight text-ink-2">
+                plus de {formatEurRound(threshold.value)}
+                <br />
+                <span className="font-semibold text-ink tabular-nums">
+                  {formatInt(threshold.over)} offres
+                </span>
+              </span>
+            </div>
+          )}
           {bins.map((b) => (
             <div
               key={b.from}

@@ -37,4 +37,12 @@ describe("buildInsights", () => {
   test("respects the limit", () => {
     expect(buildInsights(computeStats(loadCatalog().products), 2)).toHaveLength(2);
   });
+
+  test("the home page shows three, the plainest first", () => {
+    const ids = buildInsights(computeStats(loadCatalog().products)).map((i) => i.id);
+    expect(ids).toEqual(["gap", "unlimited", "5g"]);
+    // Dominated offers need the most explaining: stated only when there is room for it.
+    const all = buildInsights(computeStats(loadCatalog().products), 10).map((i) => i.id);
+    expect(all.at(-1)).toBe("dominated");
+  });
 });

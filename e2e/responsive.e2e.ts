@@ -33,12 +33,32 @@ test.describe("responsive layout", () => {
     });
   }
 
-  test("on a phone the first KPI is visible without scrolling", async ({ page }) => {
+  test("on a phone the six brief items are visible without scrolling", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    const box = await page.locator('[data-kpi="total"]').first().boundingBox();
-    expect(box).not.toBeNull();
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThan(844);
+    await hydrated(page).catch(() => {});
+    for (const kpi of ["total", "over100", "price-min", "price-max", "avg-data", "avg-price"]) {
+      const box = await page.locator(`[data-kpi="${kpi}"]`).first().boundingBox();
+      expect(box, kpi).not.toBeNull();
+      expect((box?.y ?? 0) + (box?.height ?? 0), kpi).toBeLessThanOrEqual(844);
+    }
+    // Item 6: the provider count, with a link to the full breakdown further down.
+    const providers = page.locator('[data-kpi="providers"]');
+    const box = await providers.boundingBox();
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(844);
+    await expect(providers).toHaveAttribute(
+      "data-value",
+      String(await page.locator("#providers li").count()),
+    );
+  });
+
+  test("on a phone the whole navigation fits on one line", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Pages" });
+    const overflow = await nav.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBe(0);
+    await expect(nav.getByRole("link", { name: "Article" })).toBeInViewport({ ratio: 1 });
   });
 
   test("on a phone the filters open on demand", async ({ page }) => {

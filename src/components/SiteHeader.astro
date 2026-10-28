@@ -23,9 +23,10 @@ const { current } = Astro.props;
   </a>
   <ThemeToggle />
 </div>
+<!-- One line on every screen: on a narrow phone the links scroll sideways inside the bar. -->
 <nav
   aria-label="Pages"
-  class="mt-3 flex flex-wrap gap-x-5 border-b border-line text-sm font-medium text-ink-2"
+  class="mt-3 flex gap-x-3 overflow-x-auto border-b border-line text-[13px] font-medium text-ink-2 [scrollbar-width:none] sm:gap-x-5 sm:text-sm"
 >
   {
     SITE_NAV.map((n) => (

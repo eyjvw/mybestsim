@@ -19,6 +19,7 @@
     "import": "bun scripts/import.ts",
     "dev:live": "bun run build && STATIC_DIR=dist PORT=4322 HOST=127.0.0.1 INGEST_TOKEN=dev-token-not-for-production INBOX_INTERVAL_MS=2000 bun server/main.ts --ephemeral",
     "screenshots": "node scripts/screenshots.mjs",
+    "logos": "bun scripts/logos.ts",
     "checks": "bun checks/run.mjs",
     "checks:live": "bun checks/run.mjs --live"
   },
@@ -42,6 +43,7 @@
     "@types/papaparse": "5.5.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "sharp": "0.35.5",
     "typescript": "6.0.3"
   }
 }

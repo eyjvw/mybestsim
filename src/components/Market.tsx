@@ -1,6 +1,7 @@
 import type { MarketStats } from "../lib/compare";
 import { formatEur, formatInt, formatPct, formatTier } from "../lib/format";
 import { BarList } from "./charts/BarList";
+import { ProviderLogo } from "./ProviderLogo";
 import { Panel } from "./Section";
 
 interface Props {
@@ -78,6 +79,7 @@ export function Market({ market: m, total }: Props) {
             caption="Forfaits où le fournisseur est le moins cher"
             items={top.map((w) => ({
               label: w.provider,
+              icon: <ProviderLogo provider={w.provider} />,
               value: w.wins,
               display: formatInt(w.wins),
               detail: formatPct(w.share),

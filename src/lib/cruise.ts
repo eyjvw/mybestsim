@@ -26,7 +26,7 @@ const MBS = "https://mybestsim.com/fr";
 export const ARTICLE = {
   path: "/blog/internet-croisiere-esim/",
   published: "2026-10-26",
-  updated: "2026-10-26",
+  updated: "2026-10-28",
 } as const;
 
 /**

@@ -2,10 +2,12 @@ import type { Insight } from "../lib/insights";
 
 interface Props {
   insights: Insight[];
+  /** One card per row, for a half-width column. */
+  stacked?: boolean;
 }
 
 /** "À retenir": findings computed from the current selection, never fixed copy. */
-export function Insights({ insights }: Props) {
+export function Insights({ insights, stacked = false }: Props) {
   if (insights.length === 0) {
     return (
       <p className="text-sm text-ink-3">
@@ -14,7 +16,7 @@ export function Insights({ insights }: Props) {
     );
   }
   return (
-    <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-insights>
+    <ol className={`grid gap-3 ${stacked ? "" : "sm:grid-cols-2 xl:grid-cols-4"}`} data-insights>
       {insights.map((i, n) => (
         <li
           key={i.id}

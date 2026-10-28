@@ -23,10 +23,10 @@ export function dashboardProps() {
  * `sandbox`: the page can show the sandbox's data, so the link keeps `?bac=1`.
  */
 export const SITE_NAV = [
-  { href: "/", label: "Vue d'ensemble", filters: true, sandbox: true },
+  { href: "/", label: "Accueil", filters: true, sandbox: true },
   { href: "/analyse", label: "Analyse", filters: true, sandbox: true },
   { href: "/offres", label: "Offres", filters: true, sandbox: true },
   { href: "/qualite", label: "Qualité", filters: false, sandbox: true },
-  { href: "/import", label: "Tester un import", filters: false, sandbox: true },
+  { href: "/import", label: "Import", filters: false, sandbox: true },
   { href: "/blog/internet-croisiere-esim/", label: "Article", filters: false, sandbox: false },
 ] as const;

@@ -76,10 +76,64 @@ test.describe("dashboard", () => {
     await page.goto("/");
     await hydrated(page);
     const cards = page.locator("[data-insight]");
-    await expect(cards).toHaveCount(4);
+    await expect(cards).toHaveCount(3);
     const before = await cards.allTextContents();
     await page.locator("#filter-controls select").first().selectOption("Airalo");
     await expect.poll(async () => (await cards.allTextContents()).join()).not.toBe(before.join());
+  });
+
+  test("the price histogram counts the offers over 100 € like KPI 2, filters included", async ({
+    page,
+    request,
+  }) => {
+    const products = await catalog(request);
+    await page.goto("/");
+    const histogram = page.locator("[data-price-histogram]");
+    await expect(histogram).toHaveAttribute("data-threshold", "100");
+    await expect(histogram).toHaveAttribute(
+      "data-over",
+      String(products.filter((p) => p.price > 100).length),
+    );
+    await hydrated(page);
+    await page.locator("#filter-controls select").first().selectOption("aloSIM");
+    const expected = products.filter((p) => p.provider === "aloSIM" && p.price > 100).length;
+    await expect(histogram).toHaveAttribute("data-over", String(expected));
+    expect(await kpi(page, "over100")).toBe(expected);
+  });
+
+  test("each provider of the breakdown shows its logo, loaded, and Truphone its initial", async ({
+    page,
+    request,
+  }) => {
+    const providers = new Set((await catalog(request)).map((p) => p.provider));
+    await page.goto("/");
+    await hydrated(page);
+    const rows = page.locator("#providers li");
+    await expect(rows).toHaveCount(providers.size);
+    for (const row of await rows.all()) {
+      const name = await row.locator("[data-bar-label]").innerText();
+      const logo = row.locator("[data-logo]");
+      await expect(logo).toHaveAttribute("data-logo", name);
+      if (name === "Truphone") {
+        await expect(logo).toHaveAttribute("data-initials", "T");
+        continue;
+      }
+      await logo.scrollIntoViewIfNeeded();
+      await expect(logo).toHaveAttribute("alt", "");
+      await expect
+        .poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
+        .toBe(64);
+    }
+  });
+
+  test("offer rows carry the logo of their provider", async ({ page }) => {
+    await page.goto("/offres?fournisseur=Ubigi");
+    await hydrated(page);
+    const cells = page.locator("#products table tbody tr td:nth-child(2) img");
+    await expect(cells.first()).toHaveAttribute("src", "/logos/ubigi.webp");
+    const srcs = await cells.evaluateAll((imgs) => imgs.map((i) => i.getAttribute("src")));
+    expect(srcs.length).toBeGreaterThan(0);
+    expect(new Set(srcs)).toEqual(new Set(["/logos/ubigi.webp"]));
   });
 
   test("table search ignores accents and sorting puts the dearest first", async ({
