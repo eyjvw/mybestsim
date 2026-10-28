@@ -1,5 +1,7 @@
-import { formatEur, formatEurRound, formatInt } from "../../lib/format";
+import { useEffect, useRef, useState } from "react";
+import { formatEur, formatEurRound, formatInt, formatPct } from "../../lib/format";
 import type { HistogramBin } from "../../lib/stats";
+import { nextIndex, offersLabel, tooltipAlign } from "../../lib/tooltip";
 
 interface Marker {
   label: string;
@@ -23,11 +25,41 @@ interface Props {
   threshold?: Threshold;
 }
 
+/** The plot is h-40 (160 px) with pt-8: bars use the 128 px below. */
+const PLOT_PX = 160;
+const BARS_PX = 128;
+const TIP_PX = 42;
+
 /**
  * Price distribution: touching columns split by a 2px surface gap, one hue, a hairline per
  * reference value with its label in text ink, and the counts available as a table.
+ * Each column is its own hit target: hover, tap or keyboard focus shows its count first, then
+ * its range. One tab stop for the whole plot, arrows move between columns.
  */
 export function Histogram({ bins, caption, markers = [], threshold }: Props) {
+  const [active, setActive] = useState<number | null>(null);
+  const [tabStop, setTabStop] = useState(0);
+  const touch = useRef(false);
+  const plot = useRef<HTMLDivElement>(null);
+  const columns = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // A tooltip opened by a tap closes on a tap elsewhere; Escape closes any of them.
+  useEffect(() => {
+    if (active === null) return;
+    const outside = (e: PointerEvent) => {
+      if (!plot.current?.contains(e.target as Node)) setActive(null);
+    };
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActive(null);
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [active]);
+
   if (bins.length === 0) return <p className="py-6 text-sm text-ink-3">Aucune donnée.</p>;
   const max = Math.max(...bins.map((b) => b.count));
   const top = bins[bins.length - 1].to;
@@ -35,6 +67,10 @@ export function Histogram({ bins, caption, markers = [], threshold }: Props) {
   const ticks = bins.filter((b) => b.from % 50 === 0).map((b) => b.from);
   const peak = bins.reduce((a, b) => (b.count > a.count ? b : a));
   const ordered = [...markers].sort((a, b) => a.value - b.value);
+  const total = bins.reduce((n, b) => n + b.count, 0);
+  const height = (count: number) => (max ? (count / max) * 100 : 0);
+  const tip = active !== null ? bins[active] : null;
+  const align = active !== null ? tooltipAlign(active, bins.length) : "center";
 
   return (
     <figure
@@ -44,7 +80,7 @@ export function Histogram({ bins, caption, markers = [], threshold }: Props) {
       data-over={threshold?.over}
     >
       <div className="relative">
-        <div className="relative flex h-40 items-end gap-0.5 border-b border-rule pt-8">
+        <div ref={plot} className="relative flex h-40 items-end gap-0.5 border-b border-rule pt-8">
           {threshold && threshold.value < top && (
             // The few offers above the threshold are too low to see as bars: the band and its
             // count make them visible, and the count is the brief's KPI 2.
@@ -62,20 +98,66 @@ export function Histogram({ bins, caption, markers = [], threshold }: Props) {
               </span>
             </div>
           )}
-          {bins.map((b) => (
-            <div
+          {bins.map((b, i) => (
+            <button
               key={b.from}
-              role="img"
-              aria-label={`${formatEur(b.from)} à ${formatEur(b.to)} : ${formatInt(b.count)} offres`}
-              title={`${formatEur(b.from)} – ${formatEur(b.to)} : ${formatInt(b.count)} offres`}
-              className="flex h-full min-w-0 flex-1 items-end"
+              type="button"
+              ref={(el) => {
+                columns.current[i] = el;
+              }}
+              tabIndex={i === tabStop ? 0 : -1}
+              aria-label={`${formatEur(b.from)} à ${formatEur(b.to)} : ${offersLabel(b.count, formatInt)}`}
+              data-bin={i}
+              className="flex h-full min-w-0 flex-1 items-end focus-visible:outline-offset-0"
+              onPointerDown={(e) => {
+                touch.current = e.pointerType !== "mouse";
+              }}
+              onPointerEnter={(e) => {
+                if (e.pointerType === "mouse") setActive(i);
+              }}
+              onPointerLeave={(e) => {
+                if (e.pointerType === "mouse") setActive(null);
+              }}
+              // A second tap on the same column closes it; a mouse click keeps it open.
+              onClick={() => setActive((a) => (touch.current && a === i ? null : i))}
+              onFocus={(e) => {
+                setTabStop(i);
+                if (e.currentTarget.matches(":focus-visible")) setActive(i);
+              }}
+              onBlur={() => setActive(null)}
+              onKeyDown={(e) => {
+                const next = nextIndex(e.key, i, bins.length);
+                if (next === null) return;
+                e.preventDefault();
+                columns.current[next]?.focus();
+              }}
             >
               <span
-                className="block w-full rounded-t-[3px] bg-s1 transition-[height] duration-300"
-                style={{ height: `${max ? (b.count / max) * 100 : 0}%` }}
+                className={`block w-full rounded-t-[3px] bg-s1 transition-[height] duration-300 ${active === i ? "brightness-125" : ""}`}
+                style={{ height: `${height(b.count)}%` }}
               />
-            </div>
+            </button>
           ))}
+          {tip && active !== null && (
+            // Visual only: each column's accessible name already carries the same words.
+            <div
+              aria-hidden="true"
+              data-histogram-tip={active}
+              className="pointer-events-none absolute z-10 rounded-xl border border-line bg-surface px-2.5 py-1.5 text-xs whitespace-nowrap shadow-card"
+              style={{
+                left: `${((active + (align === "start" ? 0 : align === "end" ? 1 : 0.5)) / bins.length) * 100}%`,
+                bottom: `${Math.min((height(tip.count) / 100) * BARS_PX + 6, PLOT_PX - TIP_PX)}px`,
+                translate: align === "start" ? "0" : align === "end" ? "-100%" : "-50%",
+              }}
+            >
+              <p className="font-semibold text-ink tabular-nums">
+                {offersLabel(tip.count, formatInt)}
+              </p>
+              <p className="text-ink-3 tabular-nums">
+                {tip.from} – {tip.to} €{total > 0 && ` · ${formatPct(tip.count / total)}`}
+              </p>
+            </div>
+          )}
           {ordered.map((m, i) => (
             <div
               key={m.label}
