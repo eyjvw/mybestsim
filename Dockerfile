@@ -2,7 +2,7 @@
 #   --target ingest  Bun service that validates and publishes supplier CSVs into /data
 #   --target web     Caddy serving the built site, /data (read-only) and /api -> ingest
 # `web` is last, so a plain `docker build .` still produces the site image.
-FROM oven/bun:1.4.4 AS deps
+FROM oven/bun:1.4.5 AS deps
 WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 RUN bun install --frozen-lockfile
@@ -13,7 +13,7 @@ ARG GIT_SHA=dev
 ENV GIT_SHA=$GIT_SHA
 RUN bun run validate && bun run build
 
-FROM oven/bun:1.4.4 AS ingest
+FROM oven/bun:1.4.5 AS ingest
 WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 RUN bun install --frozen-lockfile --production
